@@ -48,4 +48,4 @@ API 默认语言为 `zh-CN`。请求可使用 `Accept-Language: en` 或 `en-US` 
 
 ## AI Context
 
-`.ai/AGENTS.md` 记录 AI 使用的项目事实和代码约定。`.ai/llms.txt` 是 Bun、Elysia、Prisma、Zod、Scalar 与 Faker 的官方资料索引，应按任务按需加载；`.ai/full-llms.txt` 仅用于架构、依赖升级和新 workspace 等跨模块工作。官方文档保持外部引用，避免在仓库提交容易过期的完整厂商文档副本。
+根 `AGENTS.md` 记录 AI 使用的项目事实和代码约定。`.ai/llms.txt` 是 Bun、Elysia、Prisma、Zod、Scalar 与 Faker 的官方资料索引，应按任务按需加载；`.ai/full-llms.txt` 仅用于架构、依赖升级和新 workspace 等跨模块工作。官方文档保持外部引用，避免在仓库提交容易过期的完整厂商文档副本。
