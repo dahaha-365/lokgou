@@ -13,9 +13,13 @@
     "db:push": "bun --filter @lokgou/api db:push",
     "db:migrate": "bun --filter @lokgou/api db:migrate",
     "db:studio": "bun --filter @lokgou/api db:studio",
+    "db:seed": "bun --filter @lokgou/api db:seed",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "scaffold": "bun scripts/scaffold.ts",
+    "scaffold:module": "bun scripts/scaffold.ts module",
+    "scaffold:submodule": "bun scripts/scaffold.ts submodule",
     "test": "bun --filter '*' test",
     "typecheck": "bun --filter '*' typecheck",
     "quality": "bun run format:check && bun run lint && bun run typecheck && bun run test"
@@ -30,7 +34,11 @@
     "typescript-eslint": "^8.67.0"
   },
   "lint-staged": {
-    "*.{js,ts}": ["eslint --fix"],
-    "*.md": ["markdownlint-cli2 --fix"]
+    "*.{js,ts}": [
+      "eslint --fix"
+    ],
+    "*.md": [
+      "markdownlint-cli2 --fix"
+    ]
   }
 }

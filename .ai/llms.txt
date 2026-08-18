@@ -1,0 +1,46 @@
+# lokgou Official LLM Context Index
+
+Load only the source needed for the current task. Do not preload complete vendor documentation.
+
+## Bun
+
+- Official index: https://bun.sh/llms.txt
+- Use for runtime APIs, `Bun.password`, files, workspaces, package scripts, and `bun:test`.
+- Focus: https://bun.com/docs/runtime/hashing.md, https://bun.com/docs/test/index.md, https://bun.com/docs/pm/workspaces.md
+
+## Elysia
+
+- Official index: https://elysiajs.com/llms.txt
+- Use for routing, guards, lifecycle, validation, errors, plugin composition, JWT, OpenAPI, and testing.
+- Focus: https://elysiajs.com/essential/validation.md, https://elysiajs.com/tutorial/getting-started/guard.md, https://elysiajs.com/plugins/jwt.md, https://elysiajs.com/plugins/openapi.md
+
+## Prisma
+
+- Official index: https://www.prisma.io/llms.txt
+- Full context: https://www.prisma.io/llms-full.txt
+- Read `apps/api/prisma/schema.prisma` before database changes. Use `bun run db:generate`, `bun run db:push`, and `bun run db:seed`.
+
+## Zod
+
+- Official index: https://zod.dev/llms.txt
+- Use for schemas, coercion, error customization, `zod/locales`, and JSON Schema.
+- Focus: https://zod.dev/api, https://zod.dev/error-customization, https://zod.dev/json-schema
+
+## Scalar
+
+- Official index: https://scalar.com/llms.txt
+- Use for API Reference auth, configuration, OpenAPI extensions, and request testing.
+- Focus: https://scalar.com/products/api-references/configuration/index.md, https://scalar.com/products/api-client/authentication/index.md
+
+## Faker
+
+- Faker has no official `llms.txt` endpoint at this time.
+- Official API docs: https://fakerjs.dev/api/
+- Keep seed data deterministic with `faker.seed(...)` and generate business IDs through persisted AutoCode rules.
+
+## Order
+
+1. Read local conventions and affected code.
+2. Fetch the focused official source above.
+3. Verify installed package types and lockfile version when APIs may have changed.
+4. Run `bun run quality` after code changes.

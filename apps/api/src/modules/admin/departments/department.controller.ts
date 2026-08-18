@@ -8,20 +8,38 @@ import {
   DepartmentNotFoundResponseSchema,
   DepartmentListResponseSchema,
   SuccessResponseSchema,
+  AutoCodeRuleRequiredResponseSchema,
 } from "@lokgou/schemas";
 import { departmentService } from "./department.service";
-import { serializeDates, serializeDatesArray } from "../../lib/serialize";
+import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
+import { requestLocale, t } from "../../../lib/i18n";
+import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
 
 export const departmentController = new Elysia({ prefix: "/departments" })
   .post(
     "/",
-    async ({ body }) =>
-      DepartmentResponseSchema.parse(
-        serializeDates(await departmentService.create(DepartmentCreateSchema.parse(body)))
-      ),
+    async ({ body, request, status }) => {
+      try {
+        return DepartmentResponseSchema.parse(
+          serializeDates(await departmentService.create(DepartmentCreateSchema.parse(body)))
+        );
+      } catch (error) {
+        if (error instanceof AutoCodeRuleRequiredError) {
+          return status(422, {
+            message: t(
+              requestLocale(request.headers.get("accept-language") ?? undefined),
+              "admin.autocode.ruleRequired",
+              "DEPARTMENT_CODE"
+            ),
+            code: "AUTOCODE_RULE_REQUIRED",
+          });
+        }
+        throw error;
+      }
+    },
     {
       body: DepartmentCreateSchema,
-      response: DepartmentResponseSchema,
+      response: { 200: DepartmentResponseSchema, 422: AutoCodeRuleRequiredResponseSchema },
       detail: { tags: ["Departments"], summary: "创建部门" },
     }
   )
@@ -42,11 +60,14 @@ export const departmentController = new Elysia({ prefix: "/departments" })
   )
   .get(
     "/:id",
-    async ({ params, status }) => {
+    async ({ params, request, status }) => {
       const department = await departmentService.findById(params.id);
       if (!department)
         return status(404, {
-          message: "部门不存在",
+          message: t(
+            requestLocale(request.headers.get("accept-language") ?? undefined),
+            "admin.departments.notFound"
+          ),
           code: "DEPARTMENT_NOT_FOUND",
         });
       return DepartmentResponseSchema.parse(serializeDates(department));

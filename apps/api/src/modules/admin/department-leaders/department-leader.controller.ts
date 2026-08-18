@@ -9,7 +9,8 @@ import {
   SuccessResponseSchema,
 } from "@lokgou/schemas";
 import { departmentLeaderService } from "./department-leader.service";
-import { serializeDates, serializeDatesArray } from "../../lib/serialize";
+import { requestLocale, t } from "../../../lib/i18n";
+import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
 
 export const departmentLeaderController = new Elysia({ prefix: "/department-leaders" })
   .post(
@@ -42,11 +43,14 @@ export const departmentLeaderController = new Elysia({ prefix: "/department-lead
   )
   .get(
     "/:id",
-    async ({ params, status }) => {
+    async ({ params, request, status }) => {
       const item = await departmentLeaderService.findById(params.id);
       if (!item)
         return status(404, {
-          message: "部门负责人不存在",
+          message: t(
+            requestLocale(request.headers.get("accept-language") ?? undefined),
+            "admin.departmentLeaders.notFound"
+          ),
           code: "DEPARTMENT_LEADER_NOT_FOUND",
         });
       return DepartmentLeaderResponseSchema.parse(serializeDates(item));

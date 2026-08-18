@@ -30,7 +30,7 @@ export const EnableStateSchema = z
   .default(0)
   .describe("账号状态：0-正常；1-已停用；2-待审核");
 
-export const IdSchema = z.object({ id: z.string().min(1) });
+export const IdSchema = z.object({ id: z.coerce.number().int().positive() });
 
 export const PaginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

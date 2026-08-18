@@ -13,24 +13,42 @@ enum DepartmentLeaderRole {
 }
 
 model User {
-  id                 String             @id @default(cuid())
+  id                 Int                @id @default(autoincrement())
   email              String?            @unique
   mobile             String?            @unique
   username           String             @unique
   name               String?
+  passwordHash       String
   enableState        Int                @default(0)
   isAdmin            Boolean            @default(false)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   deletedAt          DateTime?
   leadingDepartments DepartmentLeader[]
+  sessions           UserSession[]
+}
+
+model UserSession {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Department {
-  id          String             @id @default(cuid())
+  id          Int                @id @default(autoincrement())
+  code        String             @unique
   name        String
   enableState Int                @default(0)
-  parentId    String?
+  parentId    Int?
   leaders     DepartmentLeader[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
@@ -38,9 +56,9 @@ model Department {
 }
 
 model DepartmentLeader {
-  id           String               @id @default(cuid())
-  userId       String
-  departmentId String
+  id           Int                  @id @default(autoincrement())
+  userId       Int
+  departmentId Int
   role         DepartmentLeaderRole @default(primary)
   startedAt    DateTime             @default(now())
   endedAt      DateTime?
@@ -53,4 +71,29 @@ model DepartmentLeader {
   @@unique([userId, departmentId, role])
   @@index([userId])
   @@index([departmentId])
+}
+
+model AutoCodeRule {
+  id            Int               @id @default(autoincrement())
+  key           String            @unique
+  prefix        String
+  middleTemplate String            @default("")
+  counterLength Int
+  remark        String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  counters      AutoCodeCounter[]
+}
+
+model AutoCodeCounter {
+  id        Int          @id @default(autoincrement())
+  ruleId    Int
+  middle    String
+  value     Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  rule AutoCodeRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, middle])
 }

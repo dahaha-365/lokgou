@@ -1,6 +1,8 @@
 import { Elysia } from "elysia";
 import { openapi, type ElysiaOpenAPIConfig } from "@elysia/openapi";
 import { z } from "zod";
+import { getAdminAuthorizationHeader } from "./lib/config";
+import { localizeValidationIssues, requestLocale, t } from "./lib/i18n";
 import { adminController } from "./modules/admin/admin.controller";
 
 const documentation: NonNullable<ElysiaOpenAPIConfig["documentation"]> & {
@@ -15,21 +17,41 @@ const documentation: NonNullable<ElysiaOpenAPIConfig["documentation"]> & {
     { name: "Users", description: "用户管理" },
     { name: "Departments", description: "部门管理" },
     { name: "Department Leaders", description: "部门负责人管理" },
+    { name: "Auth", description: "管理端认证与会话管理" },
+    { name: "System / AutoCode", description: "系统自动编码规则管理" },
   ],
   "x-tagGroups": [
     {
       name: "Admin",
-      tags: ["Users", "Departments", "Department Leaders"],
+      tags: ["Auth", "Users", "Departments", "Department Leaders", "System / AutoCode"],
     },
   ],
+  components: {
+    securitySchemes: {
+      AdminAppKey: {
+        type: "apiKey",
+        in: "header",
+        name: "admin-app-key",
+        description: "管理端应用访问密钥。所有 /admin 接口均需要此请求头。",
+      },
+      AdminAccessToken: {
+        type: "apiKey",
+        in: "header",
+        name: getAdminAuthorizationHeader(),
+        description: "管理用户登录后取得的 access token。",
+      },
+    },
+  },
+  security: [{ AdminAppKey: [], AdminAccessToken: [] }],
 };
 
 export const app = new Elysia({ name: "lokgou-api" })
-  .onError(({ code, set }) => {
+  .onError(({ code, request, set }) => {
     if (code === "NOT_FOUND") {
+      const locale = requestLocale(request.headers.get("accept-language") ?? undefined);
       set.status = 404;
       return {
-        message: "请求的资源不存在",
+        message: t(locale, "common.notFound"),
         code: "NOT_FOUND",
       };
     }
@@ -38,26 +60,36 @@ export const app = new Elysia({ name: "lokgou-api" })
     openapi({
       path: "/openapi",
       specPath: "/openapi/json",
-      scalar: { localization: { locale: "zh-CN" } },
+      scalar: {
+        localization: { locale: "zh-CN" },
+        persistAuth: true,
+        authentication: { preferredSecurityScheme: "AdminAppKey" },
+      },
       documentation,
       mapJsonSchema: { zod: z.toJSONSchema },
     })
   )
-  .onError(({ code, error, set }) => {
+  .onError(({ code, error, request, set }) => {
     console.error(error);
     if (code === "VALIDATION") {
+      const locale = requestLocale(request.headers.get("accept-language") ?? undefined);
       set.status = 422;
-      return { message: "请求参数验证失败", code: "VALIDATION_ERROR", issues: error.all };
+      return {
+        message: t(locale, "common.validationFailed"),
+        code: "VALIDATION_ERROR",
+        issues: localizeValidationIssues(error.all, locale),
+      };
     }
     set.status = 500;
-    return { message: "Internal Server Error", code: "INTERNAL_SERVER_ERROR" };
+    const locale = requestLocale(request.headers.get("accept-language") ?? undefined);
+    return { message: t(locale, "common.internalServerError"), code: "INTERNAL_SERVER_ERROR" };
   })
-  .get("/", () => ({
-    name: "lokgou",
-    version: "1.0.0",
-    docs: "/openapi",
-    openapi: "/openapi/json",
-  }))
+  // .get("/", () => ({
+  //   name: "lokgou",
+  //   version: "1.0.0",
+  //   docs: "/openapi",
+  //   openapi: "/openapi/json",
+  // }))
   .use(adminController);
 
 if (import.meta.main) {

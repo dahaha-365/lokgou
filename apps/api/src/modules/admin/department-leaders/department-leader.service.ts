@@ -1,4 +1,4 @@
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import type {
   DepartmentLeaderCreate,
   DepartmentLeaderUpdate,
@@ -17,13 +17,13 @@ export const departmentLeaderService = {
       },
     });
   },
-  findById(id: string) {
+  findById(id: number) {
     return prisma.departmentLeader.findUnique({ where: { id } });
   },
-  update(id: string, data: DepartmentLeaderUpdate) {
+  update(id: number, data: DepartmentLeaderUpdate) {
     return prisma.departmentLeader.update({ where: { id }, data });
   },
-  delete(id: string) {
+  delete(id: number) {
     return prisma.departmentLeader.delete({ where: { id } });
   },
   list(params: DepartmentLeaderQuery) {

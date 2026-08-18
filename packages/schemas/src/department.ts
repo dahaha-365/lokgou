@@ -2,27 +2,29 @@ import { z } from "zod";
 import { EnableStateSchema } from "./common";
 
 export const DepartmentCreateSchema = z.object({
+  code: z.string().min(1).max(50).optional(),
   name: z.string().min(1).max(100),
   enableState: EnableStateSchema.default(0),
-  parentId: z.string().nullable().optional(),
+  parentId: z.coerce.number().int().positive().nullable().optional(),
 });
 
 export const DepartmentUpdateSchema = DepartmentCreateSchema.partial();
-export const DepartmentIdSchema = z.object({ id: z.string().min(1) });
+export const DepartmentIdSchema = z.object({ id: z.coerce.number().int().positive() });
 
 export const DepartmentQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   keyword: z.string().trim().optional(),
-  parentId: z.string().optional(),
+  parentId: z.coerce.number().int().positive().optional(),
   enableState: z.coerce.number().int().optional(),
 });
 
 export const DepartmentResponseSchema = z.object({
-  id: z.string(),
+  id: z.number().int().positive(),
+  code: z.string(),
   name: z.string(),
   enableState: EnableStateSchema,
-  parentId: z.string().nullable(),
+  parentId: z.number().int().positive().nullable(),
   createdAt: z.iso.datetime({ offset: true }),
   updatedAt: z.iso.datetime({ offset: true }),
   deletedAt: z.iso.datetime({ offset: true }).nullable(),

@@ -1,17 +1,32 @@
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
+import { autoCodeService } from "../system/autocode/autocode.service";
 import type { UserCreate, UserUpdate, UserQuery } from "@lokgou/schemas";
 
 export const userService = {
-  create(data: UserCreate) {
-    return prisma.user.create({ data });
+  async create(data: UserCreate) {
+    const { password, username, ...userData } = data;
+    return prisma.user.create({
+      data: {
+        ...userData,
+        username: username ?? (await autoCodeService.generate("USERNAME")),
+        passwordHash: await Bun.password.hash(password),
+      },
+    });
   },
-  findById(id: string) {
+  findById(id: number) {
     return prisma.user.findFirst({ where: { id, deletedAt: null } });
   },
-  update(id: string, data: UserUpdate) {
-    return prisma.user.update({ where: { id }, data });
+  async update(id: number, data: UserUpdate) {
+    const { password, ...userData } = data;
+    return prisma.user.update({
+      where: { id },
+      data: {
+        ...userData,
+        ...(password ? { passwordHash: await Bun.password.hash(password) } : {}),
+      },
+    });
   },
-  softDelete(id: string) {
+  softDelete(id: number) {
     return prisma.user.update({ where: { id }, data: { deletedAt: new Date() } });
   },
   async list(params: UserQuery) {

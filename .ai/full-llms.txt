@@ -1,0 +1,19 @@
+# lokgou Architecture Context
+
+Use this only for cross-cutting work. For focused APIs, use `.ai/llms.txt`.
+
+```text
+apps/api/prisma/schema.prisma       Prisma source of truth
+apps/api/prisma/seed.ts             deterministic Faker development data
+apps/api/src/app.ts                 Elysia, OpenAPI, Scalar composition
+apps/api/src/lib/                   Prisma, i18n, identifiers
+apps/api/src/modules/admin/         guard, auth, resources, system modules
+packages/schemas/src/               shared Zod API contracts
+```
+
+- Contracts originate in `packages/schemas`; controller response maps cover every status variant.
+- Admin composes routes through `admin/routes.ts`; authentication uses JWT, persisted sessions, refresh rotation, and a configurable token header.
+- Business IDs are generated only by persisted AutoCode rules and counters.
+- OpenAPI is a public contract: update schemas, security, tags, and user docs together.
+- `zh-CN` is the standard runtime language. Custom messages live in module/locale dictionaries; Zod messages use `zod/locales`.
+- New workspaces must provide `lint`, `typecheck`, and `test`, then join the GitHub Actions matrix.

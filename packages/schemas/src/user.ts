@@ -4,15 +4,16 @@ import { EnableStateSchema } from "./common";
 export const UserCreateSchema = z.object({
   email: z.email().optional().describe("邮箱地址"),
   mobile: z.string().max(30).optional().describe("手机号"),
-  username: z.string().min(1).max(50).describe("登录用户名"),
+  username: z.string().min(1).max(50).optional().describe("登录用户名；留空时自动生成"),
   name: z.string().max(50).optional().describe("姓名"),
+  password: z.string().min(8).max(128).describe("登录密码"),
   enableState: EnableStateSchema.default(0).describe("账号状态"),
   isAdmin: z.boolean().default(false),
 });
 
 export const UserUpdateSchema = UserCreateSchema.partial();
 
-export const UserIdSchema = z.object({ id: z.string().min(1) });
+export const UserIdSchema = z.object({ id: z.coerce.number().int().positive() });
 
 export const UserQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -22,7 +23,7 @@ export const UserQuerySchema = z.object({
 });
 
 export const UserResponseSchema = z.object({
-  id: z.string(),
+  id: z.number().int().positive(),
   email: z.email().nullable(),
   mobile: z.string().nullable(),
   username: z.string(),

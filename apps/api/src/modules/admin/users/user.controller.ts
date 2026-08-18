@@ -8,20 +8,38 @@ import {
   UserNotFoundResponseSchema,
   UserListResponseSchema,
   SuccessResponseSchema,
+  AutoCodeRuleRequiredResponseSchema,
 } from "@lokgou/schemas";
 import { userService } from "./user.service";
-import { serializeDates, serializeDatesArray } from "../../lib/serialize";
+import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
+import { requestLocale, t } from "../../../lib/i18n";
+import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
 
 export const userController = new Elysia({ prefix: "/users" })
   .post(
     "/",
-    async ({ body }) =>
-      UserResponseSchema.parse(
-        serializeDates(await userService.create(UserCreateSchema.parse(body)))
-      ),
+    async ({ body, request, status }) => {
+      try {
+        return UserResponseSchema.parse(
+          serializeDates(await userService.create(UserCreateSchema.parse(body)))
+        );
+      } catch (error) {
+        if (error instanceof AutoCodeRuleRequiredError) {
+          return status(422, {
+            message: t(
+              requestLocale(request.headers.get("accept-language") ?? undefined),
+              "admin.autocode.ruleRequired",
+              "USERNAME"
+            ),
+            code: "AUTOCODE_RULE_REQUIRED",
+          });
+        }
+        throw error;
+      }
+    },
     {
       body: UserCreateSchema,
-      response: UserResponseSchema,
+      response: { 200: UserResponseSchema, 422: AutoCodeRuleRequiredResponseSchema },
       detail: { tags: ["Users"], summary: "创建用户" },
     }
   )
@@ -39,9 +57,17 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .get(
     "/:id",
-    async ({ params, status }) => {
+    async ({ params, request, status }) => {
       const user = await userService.findById(params.id);
-      if (!user) return status(404, { message: "用户不存在", code: "USER_NOT_FOUND" });
+      if (!user) {
+        return status(404, {
+          message: t(
+            requestLocale(request.headers.get("accept-language") ?? undefined),
+            "admin.users.notFound"
+          ),
+          code: "USER_NOT_FOUND",
+        });
+      }
       return UserResponseSchema.parse(serializeDates(user));
     },
     {
