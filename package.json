@@ -1,0 +1,32 @@
+{
+  "name": "lokgou",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run db:generate && bun --watch apps/api/src/app.ts",
+    "start": "bun --filter @lokgou/api start",
+    "build": "bun --filter @lokgou/api build",
+    "db:generate": "bun --filter @lokgou/api db:generate",
+    "db:push": "bun --filter @lokgou/api db:push",
+    "db:migrate": "bun --filter @lokgou/api db:migrate",
+    "db:studio": "bun --filter @lokgou/api db:studio",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "bun --filter '*' test",
+    "typecheck": "bun --filter '*' typecheck",
+    "quality": "bun run format:check && bun run lint && bun run typecheck && bun run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "bun-types": "^1.3.14",
+    "eslint": "9.39.1",
+    "jiti": "^2.7.0",
+    "prettier": "^3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.67.0"
+  }
+}

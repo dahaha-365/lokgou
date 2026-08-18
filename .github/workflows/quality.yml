@@ -1,0 +1,36 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  workspace-quality:
+    name: ${{ matrix.workspace }} quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: ["@lokgou/schemas", "@lokgou/api"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run format:check
+      - run: bun --filter '${{ matrix.workspace }}' lint
+      - run: bun --filter '${{ matrix.workspace }}' typecheck
+      - run: bun --filter '${{ matrix.workspace }}' test
+        env:
+          ADMIN_APP_KEY: ci-admin-app-key
+          DATABASE_URL: file:./prisma/ci.db
+
+  build-api:
+    name: API build
+    needs: workspace-quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build

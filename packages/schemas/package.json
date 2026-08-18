@@ -1,0 +1,25 @@
+{
+  "name": "@lokgou/schemas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./common": "./src/common.ts",
+    "./user": "./src/user.ts",
+    "./department": "./src/department.ts",
+    "./department-leader": "./src/department-leader.ts"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
+    "@types/node": "^24.0.0"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  }
+}

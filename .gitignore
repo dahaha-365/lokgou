@@ -1,0 +1,55 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+out/
+release/
+coverage/
+.cache/
+.turbo/
+.vite/
+.eslintcache
+*.tsbuildinfo
+
+# Framework output
+.next/
+.nuxt/
+.output/
+.svelte-kit/
+.expo/
+playwright-report/
+test-results/
+.nyc_output/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# Local databases
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Generated source
+apps/api/src/generated/*
+!apps/api/src/generated/.gitkeep
+
+# Editor and operating system files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp

@@ -1,0 +1,48 @@
+import { z } from "zod";
+import { EnableStateSchema } from "./common";
+
+export const DepartmentCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  enableState: EnableStateSchema.default(0),
+  parentId: z.string().nullable().optional(),
+});
+
+export const DepartmentUpdateSchema = DepartmentCreateSchema.partial();
+export const DepartmentIdSchema = z.object({ id: z.string().min(1) });
+
+export const DepartmentQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  keyword: z.string().trim().optional(),
+  parentId: z.string().optional(),
+  enableState: z.coerce.number().int().optional(),
+});
+
+export const DepartmentResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  enableState: EnableStateSchema,
+  parentId: z.string().nullable(),
+  createdAt: z.iso.datetime({ offset: true }),
+  updatedAt: z.iso.datetime({ offset: true }),
+  deletedAt: z.iso.datetime({ offset: true }).nullable(),
+});
+
+export const DepartmentNotFoundResponseSchema = z.object({
+  message: z.string(),
+  code: z.literal("DEPARTMENT_NOT_FOUND"),
+});
+
+export const DepartmentListResponseSchema = z.object({
+  items: z.array(DepartmentResponseSchema),
+  page: z.number().int(),
+  pageSize: z.number().int(),
+  total: z.number().int(),
+});
+
+export type DepartmentCreate = z.infer<typeof DepartmentCreateSchema>;
+export type DepartmentUpdate = z.infer<typeof DepartmentUpdateSchema>;
+export type DepartmentQuery = z.infer<typeof DepartmentQuerySchema>;
+export type DepartmentResponse = z.infer<typeof DepartmentResponseSchema>;
+export type DepartmentNotFoundResponse = z.infer<typeof DepartmentNotFoundResponseSchema>;
+export type DepartmentListResponse = z.infer<typeof DepartmentListResponseSchema>;

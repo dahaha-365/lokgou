@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+apps/api/src/generated/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+bun.lock
