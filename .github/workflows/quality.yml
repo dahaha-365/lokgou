@@ -14,7 +14,7 @@ jobs:
       matrix:
         workspace: ["@lokgou/schemas", "@lokgou/api"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@main
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run format:check
