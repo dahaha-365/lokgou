@@ -2,7 +2,7 @@
   "largeModel": {
     "baseUrl": "https://your-openai-compatible-endpoint/v1",
     "apiKeyEnv": "LOKGOU_DEV_MCP_LARGE_MODEL_API_KEY",
-    "model": "your-orchestrator-model",
+    "model": "your-opencode-orchestrator-model",
     "parameters": {
       "temperature": 0.2,
       "maxTokens": 8000
@@ -11,7 +11,7 @@
   "smallModel": {
     "baseUrl": "https://your-openai-compatible-endpoint/v1",
     "apiKeyEnv": "LOKGOU_DEV_MCP_SMALL_MODEL_API_KEY",
-    "model": "your-coding-model",
+    "model": "your-opencode-coding-model",
     "parameters": {
       "temperature": 0.1,
       "maxTokens": 4000

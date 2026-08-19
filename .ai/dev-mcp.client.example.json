@@ -1,9 +1,12 @@
 {
-  "mcpServers": {
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
     "lokgou-dev": {
-      "command": "bun",
-      "args": ["packages/dev-mcp/src/index.ts"],
-      "cwd": "D:/Projects/lokgou"
+      "type": "local",
+      "command": ["bun", "packages/dev-mcp/src/index.ts"],
+      "cwd": "D:/Projects/lokgou",
+      "enabled": true,
+      "timeout": 30000
     }
   }
 }

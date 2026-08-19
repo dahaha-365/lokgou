@@ -64,4 +64,13 @@ API 默认语言为 `zh-CN`。请求可使用 `Accept-Language: en` 或 `en-US` 
 
 ## AI Context
 
-根 `AGENTS.md` 记录 AI 使用的项目事实和代码约定。`.ai/llms.txt` 是 Bun、Elysia、Prisma、Zod、Scalar 与 Faker 的官方资料索引，应按任务按需加载；`.ai/full-llms.txt` 仅用于架构、依赖升级和新 workspace 等跨模块工作。官方文档保持外部引用，避免在仓库提交容易过期的完整厂商文档副本。
+根 `AGENTS.md` 记录 AI 使用的项目事实和代码约定。官方框架资料按任务直接查阅，避免在仓库提交容易过期的完整厂商文档副本。
+
+使用 OpenCode 或开发流程 MCP 时，优先控制输入上下文范围：
+
+- 实现和验证阶段使用 `contextLevel: "minimal"`，规划阶段使用 `standard`。
+- 仅在确实需要全局背景的架构或跨 workspace 任务中使用 `full`。
+- 通过 `paths` 只提供相关模块和文件，避免传入整个 workspace。
+- 将大型 diff、日志和探索结果先交给 `summarizer` 压缩，再传给后续阶段。
+
+OpenCode 配置可通过 `tool_output` 限制工具输出，并通过 `compaction` 启用自动上下文压缩；建议限制为 200 行或 8192 字节，并保留最近 10 轮对话。

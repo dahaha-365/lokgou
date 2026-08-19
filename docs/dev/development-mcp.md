@@ -112,7 +112,7 @@ bun run mcp:install:opencode
 
 ## 客户端连接
 
-`.ai/dev-mcp.client.example.json` 提供通用 stdio 连接样例。复制为 `.ai/dev-mcp.client.json` 并按本机路径调整，再将等价的 `command`、`args` 与 `cwd` 配置填入 Claude Code、Cursor、OpenCode 或 GitHub Copilot 的 MCP 设置。该文件同样被 Git 忽略，不应写入本机模型配置或凭据。
+`.ai/dev-mcp.client.example.json` 是 OpenCode stdio 连接的参考样例。通常直接执行 `bun run mcp:install:opencode` 即可将等价的 MCP 条目安装到当前用户的 OpenCode 配置；如需手动配置，复制为 `.ai/dev-mcp.client.json` 后按本机路径调整。该文件同样被 Git 忽略，不应写入模型配置或凭据。
 
 ## 阶段与调度策略
 
@@ -150,4 +150,4 @@ bun run mcp:install:opencode
 }
 ```
 
-也可传入 `role` 显式覆盖推荐角色；应仅在调用方已明确该角色和工作边界时使用。完整协议在 `.ai/agent-orchestration.md`，官方技术资料索引在 `.ai/llms.txt`。
+也可传入 `role` 显式覆盖推荐角色；应仅在调用方已明确该角色和工作边界时使用。项目级开发约定见根目录 `AGENTS.md`。

@@ -2,11 +2,6 @@
 
 Before changing code, read the documentation relevant to the task:
 
-- `.ai/llms.txt`: focused official framework context index.
-- `.ai/full-llms.txt`: cross-cutting architecture context.
-- `.ai/agent-orchestration.md`: tool-neutral large-model orchestration and small-model coding delegation protocol.
-- `.ai/agent-adapters.md`: supported development-tool discovery adapters for the protocol.
-
 - `docs/dev/index.md`: developer documentation entry point.
 - `docs/dev/getting-started.md`: local setup and common commands.
 - `docs/dev/tooling.md`: formatting, linting, tests, and CI requirements.
@@ -19,6 +14,8 @@ Before changing code, read the documentation relevant to the task:
 
 ## Working Rules
 
+- When the development workflow MCP is available, call `analyze_project` at repository-work start, `route_task` before planning or implementation, and `delegate_task` for bounded implementation or validation work.
+- For complex, cross-module, security, Prisma, public API, CI, or architecture work, route the task during planning and reassess after each completed phase.
 - Use Bun for runtime, dependencies, scripts, and tests: `bun install`, `bun add`, `bun run`, and `bun:test`.
 - Use functional Elysia plugin composition with `.use()` and `.guard()`; do not add class-based controllers.
 - Keep shared Zod request and response contracts in `packages/schemas/src` before implementing routes.
@@ -36,7 +33,6 @@ Before changing code, read the documentation relevant to the task:
 
 ## Official Context
 
-- Read `.ai/llms.txt` to identify the smallest relevant official framework source before using Bun, Elysia, Prisma, Zod, Scalar, or Faker APIs.
-- Read `.ai/full-llms.txt` only for architecture, dependency upgrades, or new workspace/framework decisions.
+- Load only the relevant official framework documentation before using Bun, Elysia, Prisma, Zod, Scalar, or Faker APIs.
 - Never guess framework signatures. Verify against official documentation and installed package types.
-- When a development tool supports agents or subagents, use `.ai/agent-orchestration.md` as the repository agent specification. Keep provider names, credentials, and tool-specific runtime configuration outside this repository.
+- Keep provider names, credentials, and tool-specific runtime configuration outside this repository.
