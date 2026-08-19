@@ -17,17 +17,49 @@ jobs:
       - uses: actions/checkout@main
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bun run format:check
-      - run: bun --filter '${{ matrix.workspace }}' lint
-      - run: bun --filter '${{ matrix.workspace }}' typecheck
-      - run: bun --filter '${{ matrix.workspace }}' test
+      - name: Check formatting
+        run: bun run format:check
+      - name: Lint ${{ matrix.workspace }}
+        run: bun --filter '${{ matrix.workspace }}' lint
+      - name: Typecheck ${{ matrix.workspace }}
+        run: bun --filter '${{ matrix.workspace }}' typecheck
+      - name: Test ${{ matrix.workspace }}
+        run: bun --filter '${{ matrix.workspace }}' test -- --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage/${{ matrix.workspace }}
         env:
           ADMIN_APP_KEY: ci-admin-app-key
+          JWT_SECRET: ci-jwt-secret-with-at-least-32-characters
           DATABASE_URL: file:./prisma/ci.db
+
+      - name: Upload ${{ matrix.workspace }} coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.workspace }}-coverage
+          path: coverage/${{ matrix.workspace }}
+          if-no-files-found: warn
+
+  seed-api-smoke:
+    name: Seeded OpenAPI API smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Prepare isolated seeded SQLite database
+        run: bun run db:push && bun run db:seed
+        env:
+          DATABASE_URL: file:./prisma/ci-api-smoke.db
+      - name: Exercise documented seed-backed API endpoints
+        run: bun --filter @lokgou/api test src/app.seed-api.test.ts
+        env:
+          ADMIN_APP_KEY: ci-admin-app-key
+          JWT_SECRET: ci-jwt-secret-with-at-least-32-characters
+          DATABASE_URL: file:./prisma/ci-api-smoke.db
+          CI_API_SEED_TEST: "true"
 
   build-api:
     name: API build
-    needs: workspace-quality
+    needs: [workspace-quality, seed-api-smoke]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main

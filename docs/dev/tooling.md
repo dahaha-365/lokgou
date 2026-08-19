@@ -25,7 +25,23 @@ bun run test
 bun run quality
 ```
 
-根质量命令聚合各 workspace 的 `lint`、`typecheck` 与 `test` 脚本。GitHub Actions 也按 workspace 独立执行这些脚本，随后构建 API。
+根质量命令聚合各 workspace 的 `lint`、`typecheck` 与 `test` 脚本。GitHub Actions 也按 workspace 独立执行这些脚本，并输出文本覆盖率、上传 LCOV 覆盖率工件，随后构建 API。
+
+## CI Seed API 冒烟测试
+
+GitHub Actions 会在独立 SQLite 数据库执行 `db:push` 与 `db:seed`，再通过 `app.handle()` 登录 seed 的 `admin` 账号并调用 OpenAPI 中的只读管理端接口。测试会发现 seed 数据的实际 ID，逐个输出请求路径与 HTTP 状态，并验证调用路径存在于 `/openapi/json` 文档中；不会执行会改变业务资源或上传文件的接口。
+
+本地需要复现该检查时，使用独立数据库并显式启用测试：
+
+```bash
+DATABASE_URL="file:./prisma/ci-api-smoke.db" bun run db:push
+DATABASE_URL="file:./prisma/ci-api-smoke.db" bun run db:seed
+CI_API_SEED_TEST=true \
+ADMIN_APP_KEY=ci-admin-app-key \
+JWT_SECRET=ci-jwt-secret-with-at-least-32-characters \
+DATABASE_URL="file:./prisma/ci-api-smoke.db" \
+bun --filter @lokgou/api test src/app.seed-api.test.ts
+```
 
 ## Workspace 工具策略
 
