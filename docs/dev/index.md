@@ -13,6 +13,9 @@ description: lokgou 的本地开发、代码质量、API 模块和脚手架指�
 - [代码质量与工具](./tooling.md)：格式化、Lint、类型检查、测试与 CI。
 - [API 模块](./api-modules.md)：模块目录、路由注册与 admin 模块约定。
 - [模块脚手架](./scaffolding.md)：创建顶级模块或子模块。
+- [开发流程 MCP](./development-mcp.md)：项目分析、任务路由和双模型编排。
+
+管理端 API 的权限目录、权限分配与有效权限使用说明，请参阅[管理端 API 访问](../user/admin-api.md)。
 
 ## 目录约定
 

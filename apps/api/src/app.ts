@@ -16,14 +16,30 @@ const documentation: NonNullable<ElysiaOpenAPIConfig["documentation"]> & {
   tags: [
     { name: "Users", description: "用户管理" },
     { name: "Departments", description: "部门管理" },
-    { name: "Department Leaders", description: "部门负责人管理" },
+    { name: "Department / Leaders", description: "部门负责人管理" },
     { name: "Auth", description: "管理端认证与会话管理" },
     { name: "System / AutoCode", description: "系统自动编码规则管理" },
+    { name: "Roles", description: "角色与权限管理" },
+    { name: "Permissions", description: "细粒度权限与数据范围管理" },
+    { name: "Menus", description: "分组菜单、菜单项与按钮管理" },
+    { name: "Dicts", description: "系统数据字典与字典项管理" },
+    { name: "Attachments", description: "系统附件上传、分类与标签管理" },
   ],
   "x-tagGroups": [
     {
       name: "Admin",
-      tags: ["Auth", "Users", "Departments", "Department Leaders", "System / AutoCode"],
+      tags: [
+        "Auth",
+        "Users",
+        "Departments",
+        "Department / Leaders",
+        "Roles",
+        "Permissions",
+        "Menus",
+        "Dicts",
+        "Attachments",
+        "System / AutoCode",
+      ],
     },
   ],
   components: {

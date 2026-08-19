@@ -14,6 +14,12 @@ description: 在本地安装依赖、初始化 SQLite 数据库并启动 lokgou 
 DATABASE_URL="file:./prisma/dev.db"
 ADMIN_APP_KEY="replace-with-a-secure-random-value"
 JWT_SECRET="replace-with-a-secure-random-value-at-least-32-characters"
+# 可选：附件本地存储根目录，文件按 YYYY/MM/DD 分目录保存
+ATTACHMENT_STORAGE_PATH="storage/attachments"
+# 可选：单文件最大上传字节数，默认 10485760（10 MiB）
+ATTACHMENT_MAX_SIZE="10485760"
+# 可选：允许的 MIME 类型，逗号分隔；支持 image/* 等通配符，默认 *
+ATTACHMENT_ALLOWED_MIME_TYPES="image/*,application/pdf"
 ```
 
 ## 启动
@@ -44,7 +50,7 @@ bun run db:seed
 
 ## 演示数据
 
-`bun run db:seed` 会先清空本地数据库中的部门负责人、会话、部门和用户，再使用固定的 Faker seed 写入可重复的演示数据。
+`bun run db:seed` 会替换本地数据库中的**全部**现有数据（包括菜单、权限、授权关系、自动编码规则及计数器），再使用固定的 Faker seed 写入可重复的、关系完整的演示数据。
 
 seed 会调用 `USERNAME` 与 `DEPARTMENT_CODE` 自动编码规则，为模拟用户和部门生成实际编号示例。
 
@@ -53,6 +59,13 @@ seed 会调用 `USERNAME` 与 `DEPARTMENT_CODE` 自动编码规则，为模拟�
 ```text
 username: admin
 password: admin123456
+```
+
+普通演示管理员账号用于验证角色、部门角色、用户角色和直接授权的有效权限与拒绝优先级：
+
+```text
+username: USR000001
+password: demo123456
 ```
 
 不要在生产环境运行该 seed，也不要在生产环境使用此密码。

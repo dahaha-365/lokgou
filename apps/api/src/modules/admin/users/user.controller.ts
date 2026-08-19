@@ -1,3 +1,4 @@
+import { jwt } from "@elysia/jwt";
 import { Elysia } from "elysia";
 import {
   UserCreateSchema,
@@ -14,8 +15,26 @@ import { userService } from "./user.service";
 import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
 import { requestLocale, t } from "../../../lib/i18n";
 import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
+import { accessibleBy } from "../../../lib/casl-prisma";
+import { getAdminAuthorizationHeader, getJwtSecret } from "../../../lib/config";
+import { permissionService } from "../permissions/permission.service";
+
+const jwtSecret = getJwtSecret();
+if (!jwtSecret) throw new Error("JWT_SECRET must be configured.");
+
+function accessToken(headers: Record<string, string | undefined>): string | undefined {
+  const value = headers[getAdminAuthorizationHeader()];
+  return value?.startsWith("Bearer ") ? value.slice(7) : value;
+}
+
+function numericClaim(value: unknown): number | null {
+  return typeof value === "string" && /^\d+$/.test(value) && Number(value) > 0
+    ? Number(value)
+    : null;
+}
 
 export const userController = new Elysia({ prefix: "/users" })
+  .use(jwt({ name: "accessJwt", secret: jwtSecret, exp: "15m" }))
   .post(
     "/",
     async ({ body, request, status }) => {
@@ -45,8 +64,14 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .get(
     "/",
-    async ({ query }) => {
-      const result = await userService.list(UserQuerySchema.parse(query));
+    async ({ query, headers, accessJwt }) => {
+      const payload = await accessJwt.verify(accessToken(headers));
+      const userId = payload ? numericClaim(payload.sub) : null;
+      const ability = userId ? await permissionService.abilityFor(userId) : null;
+      const result = await userService.list(
+        UserQuerySchema.parse(query),
+        ability ? accessibleBy(ability, "read").ofType("User") : undefined
+      );
       return UserListResponseSchema.parse({ ...result, items: serializeDatesArray(result.items) });
     },
     {
@@ -57,8 +82,14 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .get(
     "/:id",
-    async ({ params, request, status }) => {
-      const user = await userService.findById(params.id);
+    async ({ params, request, headers, accessJwt, status }) => {
+      const payload = await accessJwt.verify(accessToken(headers));
+      const userId = payload ? numericClaim(payload.sub) : null;
+      const ability = userId ? await permissionService.abilityFor(userId) : null;
+      const user = await userService.findById(
+        params.id,
+        ability ? accessibleBy(ability, "read").ofType("User") : undefined
+      );
       if (!user) {
         return status(404, {
           message: t(
@@ -78,26 +109,55 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .patch(
     "/:id",
-    async ({ params, body }) =>
-      UserResponseSchema.parse(
+    async ({ params, body, request, headers, accessJwt, status }) => {
+      const payload = await accessJwt.verify(accessToken(headers));
+      const userId = payload ? numericClaim(payload.sub) : null;
+      const ability = userId ? await permissionService.abilityFor(userId) : null;
+      if (
+        !ability ||
+        !(await userService.findById(params.id, accessibleBy(ability, "update").ofType("User")))
+      )
+        return status(404, {
+          message: t(
+            requestLocale(request.headers.get("accept-language") ?? undefined),
+            "admin.users.notFound"
+          ),
+          code: "USER_NOT_FOUND",
+        });
+      return UserResponseSchema.parse(
         serializeDates(await userService.update(params.id, UserUpdateSchema.parse(body)))
-      ),
+      );
+    },
     {
       params: UserIdSchema,
       body: UserUpdateSchema,
-      response: UserResponseSchema,
+      response: { 200: UserResponseSchema, 404: UserNotFoundResponseSchema },
       detail: { tags: ["Users"], summary: "修改用户" },
     }
   )
   .delete(
     "/:id",
-    async ({ params }) => {
+    async ({ params, request, headers, accessJwt, status }) => {
+      const payload = await accessJwt.verify(accessToken(headers));
+      const userId = payload ? numericClaim(payload.sub) : null;
+      const ability = userId ? await permissionService.abilityFor(userId) : null;
+      if (
+        !ability ||
+        !(await userService.findById(params.id, accessibleBy(ability, "delete").ofType("User")))
+      )
+        return status(404, {
+          message: t(
+            requestLocale(request.headers.get("accept-language") ?? undefined),
+            "admin.users.notFound"
+          ),
+          code: "USER_NOT_FOUND",
+        });
       await userService.softDelete(params.id);
       return { success: true };
     },
     {
       params: UserIdSchema,
-      response: SuccessResponseSchema,
+      response: { 200: SuccessResponseSchema, 404: UserNotFoundResponseSchema },
       detail: { tags: ["Users"], summary: "删除用户" },
     }
   );

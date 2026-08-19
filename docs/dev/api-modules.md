@@ -33,7 +33,14 @@ modules/
 
 ## OpenAPI
 
-子模块 controller 应声明自己的资源 tag，例如 `Users`、`Departments`。`app.ts` 使用 Scalar 的 `x-tagGroups` 将这些 tag 放在 `Admin` 文档分组下。
+子模块 controller 应声明自己的资源 tag，例如 `Users`、`Departments`。**新增、重命名或删除资源 tag 时，必须在同一变更中更新 `apps/api/src/app.ts` 的 `documentation.tags` 和 Admin `x-tagGroups`**，否则接口虽会出现在原始 OpenAPI 规范中，却不会获得正确的 Scalar 描述和分组。
+
+提交 API 变更前按以下清单复核：
+
+- 共享 Zod 请求、响应和错误 contract 已在 `packages/schemas/src` 定义并导出；
+- 每个路由均有 `detail.tags`、`detail.summary` 与完整状态码 response map；
+- 每个新增 tag 同时加入 `documentation.tags` 与对应的 `x-tagGroups`；
+- 用户文档已更新，并通过 `bun run quality` 验证。
 
 ## 业务编号
 
@@ -45,3 +52,26 @@ createIdentifier({ prefix: "DEP-", middle: "OPS-", counter: 42, length: 6 });
 ```
 
 计数器由 `admin/system/autocode` 规则模块持久化管理。规则按业务键和渲染后的中段独立计数，可在事务中安全递增。用户未传 `username` 时读取 `USERNAME` 规则；部门未传 `code` 时读取 `DEPARTMENT_CODE` 规则。未配置规则时不会生成编码，并返回 `AUTOCODE_RULE_REQUIRED`。
+
+## 附件上传
+
+业务模块需要保存 `File` 时，调用 `apps/api/src/modules/admin/attachments/attachment.service.ts` 导出的 `uploadAttachment`，不要直接使用 `Bun.write`。该方法统一生成 `ATTACHMENT` 自动编码、按 `ATTACHMENT_STORAGE_PATH/YYYY/MM/DD` 写入文件、净化原始文件名、持久化分类与标签，并在数据库写入失败时回收已写入的文件。
+
+```ts
+import { uploadAttachment } from "../attachments/attachment.service";
+
+const attachment = await uploadAttachment(file, {
+  category: "invoice",
+  tags: ["finance", "2026"],
+});
+```
+
+返回值是 Prisma `Attachment` 记录；调用者应保存 `attachment.id` 关联业务数据，不能保存或暴露内部 `storagePath`。
+
+上传方法会同时执行 `ATTACHMENT_MAX_SIZE`（字节，默认 10 MiB）和 `ATTACHMENT_ALLOWED_MIME_TYPES`（逗号分隔，支持 `image/*`，默认 `*`）限制；其他模块不得绕过该方法或自行实现不同的文件限制。
+
+## 操作人审计
+
+所有通过已认证 Admin API 执行的成功 `POST`、`PUT`、`PATCH` 与 `DELETE` 操作，都会自动写入 `AdminOperationLog`。日志以 `actorId` 外键关联实际 access token 对应的 `User`，并记录 HTTP 方法、顶级资源与规范化请求路径；操作人不来自请求体或客户端请求头，因此业务模块不得自行接收或伪造操作人字段。
+
+认证路由不记录为资源 CRUD 操作。日志记录由 admin 顶级 guard 在业务 handler 成功后统一处理，新 CRUD 子模块通过 `admin/routes.ts` 挂载即可继承该行为。

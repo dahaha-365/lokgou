@@ -1,0 +1,30 @@
+{
+  "largeModel": {
+    "baseUrl": "https://your-openai-compatible-endpoint/v1",
+    "apiKeyEnv": "LOKGOU_DEV_MCP_LARGE_MODEL_API_KEY",
+    "model": "your-orchestrator-model",
+    "parameters": {
+      "temperature": 0.2,
+      "maxTokens": 8000
+    }
+  },
+  "smallModel": {
+    "baseUrl": "https://your-openai-compatible-endpoint/v1",
+    "apiKeyEnv": "LOKGOU_DEV_MCP_SMALL_MODEL_API_KEY",
+    "model": "your-coding-model",
+    "parameters": {
+      "temperature": 0.1,
+      "maxTokens": 4000
+    }
+  },
+  "roles": {
+    "orchestrator": {},
+    "code-gen": {},
+    "validator": {
+      "model": "your-validation-model",
+      "parameters": { "temperature": 0 }
+    },
+    "summarizer": {},
+    "translator": {}
+  }
+}

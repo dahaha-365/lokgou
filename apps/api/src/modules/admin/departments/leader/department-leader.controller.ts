@@ -9,10 +9,10 @@ import {
   SuccessResponseSchema,
 } from "@lokgou/schemas";
 import { departmentLeaderService } from "./department-leader.service";
-import { requestLocale, t } from "../../../lib/i18n";
-import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
+import { requestLocale, t } from "../../../../lib/i18n";
+import { serializeDates, serializeDatesArray } from "../../../../lib/serialize";
 
-export const departmentLeaderController = new Elysia({ prefix: "/department-leaders" })
+export const departmentLeaderController = new Elysia({ prefix: "/leader" })
   .post(
     "/",
     async ({ body }) =>
@@ -24,7 +24,7 @@ export const departmentLeaderController = new Elysia({ prefix: "/department-lead
     {
       body: DepartmentLeaderCreateSchema,
       response: DepartmentLeaderResponseSchema,
-      detail: { tags: ["Department Leaders"], summary: "创建部门负责人" },
+      detail: { tags: ["Department / Leaders"], summary: "创建部门负责人" },
     }
   )
   .get(
@@ -38,7 +38,7 @@ export const departmentLeaderController = new Elysia({ prefix: "/department-lead
     {
       query: DepartmentLeaderQuerySchema,
       response: DepartmentLeaderResponseSchema.array(),
-      detail: { tags: ["Department Leaders"], summary: "部门负责人列表" },
+      detail: { tags: ["Department / Leaders"], summary: "部门负责人列表" },
     }
   )
   .get(
@@ -61,7 +61,7 @@ export const departmentLeaderController = new Elysia({ prefix: "/department-lead
         200: DepartmentLeaderResponseSchema,
         404: DepartmentLeaderNotFoundResponseSchema,
       },
-      detail: { tags: ["Department Leaders"], summary: "查询部门负责人" },
+      detail: { tags: ["Department / Leaders"], summary: "查询部门负责人" },
     }
   )
   .patch(
@@ -76,7 +76,7 @@ export const departmentLeaderController = new Elysia({ prefix: "/department-lead
       params: DepartmentLeaderIdSchema,
       body: DepartmentLeaderUpdateSchema,
       response: DepartmentLeaderResponseSchema,
-      detail: { tags: ["Department Leaders"], summary: "修改部门负责人" },
+      detail: { tags: ["Department / Leaders"], summary: "修改部门负责人" },
     }
   )
   .delete(
@@ -88,6 +88,6 @@ export const departmentLeaderController = new Elysia({ prefix: "/department-lead
     {
       params: DepartmentLeaderIdSchema,
       response: SuccessResponseSchema,
-      detail: { tags: ["Department Leaders"], summary: "删除部门负责人" },
+      detail: { tags: ["Department / Leaders"], summary: "删除部门负责人" },
     }
   );

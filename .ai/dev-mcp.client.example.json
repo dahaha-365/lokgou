@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "lokgou-dev": {
+      "command": "bun",
+      "args": ["packages/dev-mcp/src/index.ts"],
+      "cwd": "D:/Projects/lokgou"
+    }
+  }
+}

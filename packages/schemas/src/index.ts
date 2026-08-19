@@ -4,3 +4,8 @@ export * from "./department";
 export * from "./department-leader";
 export * from "./auth";
 export * from "./autocode";
+export * from "./role";
+export * from "./permission";
+export * from "./menu";
+export * from "./dict";
+export * from "./attachment";

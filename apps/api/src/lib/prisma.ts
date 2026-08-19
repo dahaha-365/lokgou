@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { createCaslExtension } from "./casl-prisma";
 import { PrismaClient } from "../generated/prisma/client";
 import "./config";
 
@@ -14,4 +15,4 @@ const adapter = new PrismaLibSql({
   url,
 });
 
-export const prisma = new PrismaClient({ adapter });
+export const prisma = new PrismaClient({ adapter }).$extends(createCaslExtension());

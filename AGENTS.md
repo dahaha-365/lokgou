@@ -4,12 +4,15 @@ Before changing code, read the documentation relevant to the task:
 
 - `.ai/llms.txt`: focused official framework context index.
 - `.ai/full-llms.txt`: cross-cutting architecture context.
+- `.ai/agent-orchestration.md`: tool-neutral large-model orchestration and small-model coding delegation protocol.
+- `.ai/agent-adapters.md`: supported development-tool discovery adapters for the protocol.
 
 - `docs/dev/index.md`: developer documentation entry point.
 - `docs/dev/getting-started.md`: local setup and common commands.
 - `docs/dev/tooling.md`: formatting, linting, tests, and CI requirements.
 - `docs/dev/api-modules.md`: API module structure, routing, guards, and OpenAPI conventions.
 - `docs/dev/scaffolding.md`: commands for creating API modules and submodules.
+- `docs/dev/development-mcp.md`: local configuration and use of the development workflow MCP.
 - `docs/user/index.md`: user documentation entry point.
 - `docs/user/admin-api.md`: Admin API route prefix and `admin-app-key` requirements.
 - `docs/user/api-reference.md`: Scalar and OpenAPI reference usage.
@@ -36,3 +39,4 @@ Before changing code, read the documentation relevant to the task:
 - Read `.ai/llms.txt` to identify the smallest relevant official framework source before using Bun, Elysia, Prisma, Zod, Scalar, or Faker APIs.
 - Read `.ai/full-llms.txt` only for architecture, dependency upgrades, or new workspace/framework decisions.
 - Never guess framework signatures. Verify against official documentation and installed package types.
+- When a development tool supports agents or subagents, use `.ai/agent-orchestration.md` as the repository agent specification. Keep provider names, credentials, and tool-specific runtime configuration outside this repository.

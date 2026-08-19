@@ -26,6 +26,8 @@ test-results/
 .env.*
 !.env.example
 !.env.*.example
+.ai/dev-mcp.config.json
+.ai/dev-mcp.client.json
 *.pem
 *.key
 *.p12

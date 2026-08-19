@@ -13,8 +13,10 @@ export const userService = {
       },
     });
   },
-  findById(id: number) {
-    return prisma.user.findFirst({ where: { id, deletedAt: null } });
+  findById(id: number, accessWhere?: object) {
+    return prisma.user.findFirst({
+      where: { AND: [{ id, deletedAt: null }, ...(accessWhere ? [accessWhere] : [])] },
+    });
   },
   async update(id: number, data: UserUpdate) {
     const { password, ...userData } = data;
@@ -29,7 +31,7 @@ export const userService = {
   softDelete(id: number) {
     return prisma.user.update({ where: { id }, data: { deletedAt: new Date() } });
   },
-  async list(params: UserQuery) {
+  async list(params: UserQuery, accessWhere?: object) {
     const { page, pageSize, keyword, enableState } = params;
     const where = {
       deletedAt: null,
@@ -44,14 +46,15 @@ export const userService = {
         : {}),
       ...(enableState !== undefined ? { enableState } : {}),
     };
+    const scopedWhere = { AND: [where, ...(accessWhere ? [accessWhere] : [])] };
     const [items, total] = await prisma.$transaction([
       prisma.user.findMany({
-        where,
+        where: scopedWhere,
         skip: (page - 1) * pageSize,
         take: pageSize,
         orderBy: { createdAt: "desc" },
       }),
-      prisma.user.count({ where }),
+      prisma.user.count({ where: scopedWhere }),
     ]);
     return { items, page, pageSize, total };
   },

@@ -15,7 +15,7 @@ import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
 import { requestLocale, t } from "../../../lib/i18n";
 import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
 
-export const departmentController = new Elysia({ prefix: "/departments" })
+export const departmentController = new Elysia()
   .post(
     "/",
     async ({ body, request, status }) => {

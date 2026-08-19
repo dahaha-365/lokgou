@@ -12,6 +12,17 @@ enum DepartmentLeaderRole {
   deputy
 }
 
+enum PermissionEffect {
+  allow
+  deny
+}
+
+enum MenuType {
+  group
+  menu
+  button
+}
+
 model User {
   id                 Int                @id @default(autoincrement())
   email              String?            @unique
@@ -25,7 +36,11 @@ model User {
   updatedAt          DateTime           @updatedAt
   deletedAt          DateTime?
   leadingDepartments DepartmentLeader[]
+  roles              UserRole[]
+  departmentRoles    UserDepartmentRole[]
+  permissions        UserPermission[]
   sessions           UserSession[]
+  operationLogs      AdminOperationLog[]
 }
 
 model UserSession {
@@ -50,6 +65,7 @@ model Department {
   enableState Int                @default(0)
   parentId    Int?
   leaders     DepartmentLeader[]
+  roles       DepartmentRole[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   deletedAt   DateTime?
@@ -71,6 +87,175 @@ model DepartmentLeader {
   @@unique([userId, departmentId, role])
   @@index([userId])
   @@index([departmentId])
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  code        String           @unique
+  name        String
+  description String?
+  permissions String           @default("[]")
+  enableState Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+  users       UserRole[]
+  departments DepartmentRole[]
+  permissionAssignments RolePermission[]
+}
+
+model UserRole {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  roleId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissions UserRolePermission[]
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+}
+
+model DepartmentRole {
+  id                  Int                  @id @default(autoincrement())
+  departmentId        Int
+  roleId              Int
+  grantedPermissions  String               @default("[]")
+  revokedPermissions  String               @default("[]")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  assignments         UserDepartmentRole[]
+  permissions         DepartmentRolePermission[]
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([departmentId, roleId])
+  @@index([roleId])
+}
+
+model UserDepartmentRole {
+  id               Int            @id @default(autoincrement())
+  userId           Int
+  departmentRoleId Int
+  startedAt        DateTime       @default(now())
+  endedAt          DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentRole DepartmentRole @relation(fields: [departmentRoleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, departmentRoleId, startedAt])
+  @@index([userId])
+  @@index([departmentRoleId])
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  category    String
+  action      String
+  subject     String
+  scope       String   @default("all")
+  enableState Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  users       UserPermission[]
+  roles       RolePermission[]
+  userRoles   UserRolePermission[]
+  departmentRoles DepartmentRolePermission[]
+  menus       Menu[]
+}
+
+model Menu {
+  id             Int       @id @default(autoincrement())
+  code           String    @unique
+  name           String
+  group          String
+  type           MenuType
+  parentId       Int?
+  path           String?
+  component      String?
+  icon           String?
+  sortOrder      Int       @default(0)
+  permissionCode String
+  enableState    Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  parent     Menu?       @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children   Menu[]      @relation("MenuHierarchy")
+  permission Permission  @relation(fields: [permissionCode], references: [code])
+
+  @@index([group, sortOrder])
+  @@index([parentId])
+  @@index([permissionCode])
+}
+
+model UserPermission {
+  id           Int              @id @default(autoincrement())
+  userId       Int
+  permissionId Int
+  effect       PermissionEffect @default(allow)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@index([permissionId])
+}
+
+model RolePermission {
+  id           Int              @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  effect       PermissionEffect @default(allow)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model UserRolePermission {
+  id           Int              @id @default(autoincrement())
+  userRoleId   Int
+  permissionId Int
+  effect       PermissionEffect @default(allow)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  userRole   UserRole   @relation(fields: [userRoleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userRoleId, permissionId])
+  @@index([permissionId])
+}
+
+model DepartmentRolePermission {
+  id               Int              @id @default(autoincrement())
+  departmentRoleId Int
+  permissionId     Int
+  effect           PermissionEffect @default(allow)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  departmentRole DepartmentRole @relation(fields: [departmentRoleId], references: [id], onDelete: Cascade)
+  permission     Permission     @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([departmentRoleId, permissionId])
+  @@index([permissionId])
 }
 
 model AutoCodeRule {
@@ -96,4 +281,66 @@ model AutoCodeCounter {
   rule AutoCodeRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
   @@unique([ruleId, middle])
+}
+
+model Dict {
+  id          Int        @id @default(autoincrement())
+  code        String     @unique
+  name        String
+  description String?
+  enableState Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+  items       DictItem[]
+}
+
+model DictItem {
+  id          Int      @id @default(autoincrement())
+  dictId      Int
+  label       String
+  value       String
+  sortOrder   Int      @default(0)
+  description String?
+  enableState Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  dict Dict @relation(fields: [dictId], references: [id], onDelete: Restrict)
+
+  @@unique([dictId, value])
+  @@index([dictId, sortOrder])
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement())
+  code         String   @unique
+  originalName String
+  storageName  String
+  storagePath  String   @unique
+  mimeType     String
+  size         Int
+  category     String?
+  tags         String   @default("[]")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  @@index([category])
+  @@index([createdAt])
+}
+
+model AdminOperationLog {
+  id        Int      @id @default(autoincrement())
+  actorId   Int
+  method    String
+  resource  String
+  path      String
+  createdAt DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([actorId, createdAt])
+  @@index([resource, createdAt])
 }

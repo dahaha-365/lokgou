@@ -10,7 +10,7 @@ description: 使用 Scalar 和 OpenAPI JSON 查看、调试 lokgou API。
 - Scalar：`http://localhost:3000/openapi`
 - OpenAPI JSON：`http://localhost:3000/openapi/json`
 
-Scalar 会将管理端资源显示在 `Admin` 分组下，并按 Auth、Users、Departments、Department Leaders 分类。
+Scalar 会将管理端资源显示在 `Admin` 分组下，并按 Auth、Users、Departments、Department Leaders、Roles、Permissions 分类。部门负责人接口位于 `Departments` 子模块的 `/admin/departments/leader` 路径下；权限目录、分配和用户有效权限接口位于 `Permissions` 分类的 `/admin/permissions` 路径下。
 
 使用 Scalar 的请求调试功能前，先在认证设置中填写 `admin-app-key`，或在请求头中手动添加该字段。
 

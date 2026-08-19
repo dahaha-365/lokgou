@@ -9,7 +9,7 @@ description: lokgou 管理端 API 的访问方式与接口参考入口。
 
 ## 文档导航
 
-- [管理端 API 访问](./admin-api.md)：请求地址、`admin-app-key` 和错误响应。
-- [API 参考](./api-reference.md)：使用 Scalar 与 OpenAPI JSON 浏览接口。
+- [管理端 API 访问](./admin-api.md)：请求地址、鉴权、权限目录、分配和有效权限。
+- [API 参考](./api-reference.md)：使用 Scalar 与 OpenAPI JSON 浏览包括 Permissions 在内的接口。
 
 开发与扩展相关内容请访问 [开发者文档](../dev/index.md)。
