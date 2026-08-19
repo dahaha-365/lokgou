@@ -74,3 +74,7 @@ API 默认语言为 `zh-CN`。请求可使用 `Accept-Language: en` 或 `en-US` 
 - 将大型 diff、日志和探索结果先交给 `summarizer` 压缩，再传给后续阶段。
 
 OpenCode 配置可通过 `tool_output` 限制工具输出，并通过 `compaction` 启用自动上下文压缩；建议限制为 200 行或 8192 字节，并保留最近 10 轮对话。
+
+## OpenCode 提供商配置
+
+提供商、模型和凭据应配置在用户全局配置 `~/.config/opencode/opencode.json` 中，并使用 `{env:OPENCODE_API_KEY_CHERRYIN}` 引用环境变量。项目级 `opencode.json` 不应包含 `provider` 条目，因为 OpenCode 退出时可能重写项目配置。修改配置后可运行 `bun run format:check` 检查格式。
