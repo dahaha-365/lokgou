@@ -135,7 +135,7 @@ seedTest(
       "/admin/menus/users/{userId}/effective"
     );
 
-    await get("/admin/dicts", "/admin/dicts");
+    await get("/admin/system/dicts", "/admin/system/dicts");
     await get("/admin/attachments", "/admin/attachments");
     await get(
       `/admin/system/audit-logs/users/${adminId}`,
