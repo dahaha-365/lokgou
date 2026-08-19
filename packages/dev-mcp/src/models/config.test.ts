@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { resolveModel, type DevMcpConfig } from "./config";
+import { resolveModel, type DevMcpConfig, type ModelConfig } from "./config";
+import { complete } from "./client";
 
 const config: DevMcpConfig = {
   largeModel: {
@@ -33,5 +34,47 @@ describe("resolveModel", () => {
       model: "validator-model",
       parameters: { temperature: 0, maxTokens: 4000 },
     });
+  });
+});
+
+describe("complete", () => {
+  async function captureRequest(parameters: ModelConfig["parameters"]) {
+    const originalFetch = globalThis.fetch;
+    const originalKey = process.env.TEST_MODEL_KEY;
+    process.env.TEST_MODEL_KEY = "test-key";
+    let requestBody: Record<string, unknown> | undefined;
+    globalThis.fetch = (async (_input, init) => {
+      requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    try {
+      await complete(
+        {
+          baseUrl: "https://model.example/v1",
+          apiKeyEnv: "TEST_MODEL_KEY",
+          model: "model-without-temperature",
+          parameters,
+        },
+        "system",
+        "prompt"
+      );
+      return requestBody;
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalKey === undefined) delete process.env.TEST_MODEL_KEY;
+      else process.env.TEST_MODEL_KEY = originalKey;
+    }
+  }
+
+  test("does not send temperature when it is not configured", async () => {
+    expect(await captureRequest({})).not.toHaveProperty("temperature");
+  });
+
+  test("sends an explicitly configured zero temperature", async () => {
+    expect(await captureRequest({ temperature: 0 })).toHaveProperty("temperature", 0);
   });
 });

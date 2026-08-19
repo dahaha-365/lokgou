@@ -10,7 +10,7 @@ import { Elysia } from "elysia";
 import { serializeDates, serializeDatesArray } from "../../../../lib/serialize";
 import { autoCodeService } from "./autocode.service";
 
-export const autoCodeController = new Elysia({ prefix: "/system/autocode" })
+export const autoCodeController = new Elysia({ prefix: "/autocode" })
   .post(
     "/rules",
     async ({ body }) =>

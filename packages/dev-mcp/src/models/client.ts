@@ -17,7 +17,9 @@ export async function complete(
         { role: "system", content: system },
         { role: "user", content: prompt },
       ],
-      temperature: model.parameters.temperature ?? 0.2,
+      ...(model.parameters.temperature === undefined
+        ? {}
+        : { temperature: model.parameters.temperature }),
       ...(model.parameters.maxTokens ? { max_tokens: model.parameters.maxTokens } : {}),
     }),
   });

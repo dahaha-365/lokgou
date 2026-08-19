@@ -10,7 +10,7 @@ import { authService } from "./auth/auth.service";
 import { permissionService } from "./permissions/permission.service";
 import { requestLocale, t } from "../../lib/i18n";
 import { adminRoutes } from "./routes";
-import { recordOperation } from "./audit-logs/audit-log.service";
+import { recordOperation } from "./system/audit-logs/audit-log.service";
 
 const jwtSecret = getJwtSecret();
 if (!jwtSecret) throw new Error("JWT_SECRET must be configured.");
@@ -18,6 +18,7 @@ const adminActors = new WeakMap<Request, number>();
 const resourceSubjects = {
   users: "User",
   departments: "Department",
+  positions: "Position",
   roles: "Role",
   permissions: "Permission",
   menus: "Menu",
@@ -41,7 +42,8 @@ function numericClaim(value: unknown): number | null {
 }
 
 function adminResource(path: string) {
-  return path.slice(adminPrefix.length).split("/").filter(Boolean)[0];
+  const segments = path.slice(adminPrefix.length).split("/").filter(Boolean);
+  return segments[0] === "hr" || segments[0] === "system" ? segments[1] : segments[0];
 }
 
 function isAuthPath(path: string) {
@@ -62,8 +64,10 @@ function operationAction(method: string) {
 
 function targetIdFromPath(path: string, resource: string): number | null {
   const segments = path.slice(adminPrefix.length).split("/").filter(Boolean);
-  if (segments[0] !== resource || !/^\d+$/.test(segments[1] ?? "")) return null;
-  const targetId = Number(segments[1]);
+  const resourceIndex = segments[0] === "hr" || segments[0] === "system" ? 1 : 0;
+  if (segments[resourceIndex] !== resource || !/^\d+$/.test(segments[resourceIndex + 1] ?? ""))
+    return null;
+  const targetId = Number(segments[resourceIndex + 1]);
   return Number.isSafeInteger(targetId) && targetId > 0 ? targetId : null;
 }
 

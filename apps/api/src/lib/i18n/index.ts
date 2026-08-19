@@ -3,6 +3,7 @@ import { autocode as enUSAutoCode } from "./en-US/admin/autocode";
 import { auth as enUSAuth } from "./en-US/admin/auth";
 import { departmentLeaders as enUSDepartmentLeaders } from "./en-US/admin/department-leaders";
 import { departments as enUSDepartments } from "./en-US/admin/departments";
+import { positions as enUSPositions } from "./en-US/admin/positions";
 import { guard as enUSGuard } from "./en-US/admin/guard";
 import { users as enUSUsers } from "./en-US/admin/users";
 import { roles as enUSRoles } from "./en-US/admin/roles";
@@ -14,6 +15,7 @@ import { autocode as zhCNAutoCode } from "./zh-CN/admin/autocode";
 import { auth as zhCNAuth } from "./zh-CN/admin/auth";
 import { departmentLeaders as zhCNDepartmentLeaders } from "./zh-CN/admin/department-leaders";
 import { departments as zhCNDepartments } from "./zh-CN/admin/departments";
+import { positions as zhCNPositions } from "./zh-CN/admin/positions";
 import { guard as zhCNGuard } from "./zh-CN/admin/guard";
 import { users as zhCNUsers } from "./zh-CN/admin/users";
 import { roles as zhCNRoles } from "./zh-CN/admin/roles";
@@ -36,6 +38,7 @@ const messages = {
       auth: zhCNAuth,
       departmentLeaders: zhCNDepartmentLeaders,
       departments: zhCNDepartments,
+      positions: zhCNPositions,
       guard: zhCNGuard,
       users: zhCNUsers,
       roles: zhCNRoles,
@@ -51,6 +54,7 @@ const messages = {
       auth: enUSAuth,
       departmentLeaders: enUSDepartmentLeaders,
       departments: enUSDepartments,
+      positions: enUSPositions,
       guard: enUSGuard,
       users: enUSUsers,
       roles: enUSRoles,
@@ -73,6 +77,8 @@ export function t(
     | "admin.auth.invalidRefreshToken"
     | "admin.auth.invalidAccessToken"
     | "admin.departments.notFound"
+    | "admin.positions.notFound"
+    | "admin.positions.notFound"
     | "admin.departmentLeaders.notFound"
     | "admin.guard.invalidAppKey"
     | "admin.guard.permissionForbidden"
@@ -105,6 +111,8 @@ export function t(locale: Locale, key: string, value?: string): string {
   if (key === "admin.auth.invalidAccessToken")
     return messages[locale].admin.auth.invalidAccessToken;
   if (key === "admin.departments.notFound") return messages[locale].admin.departments.notFound;
+  if (key === "admin.positions.notFound") return messages[locale].admin.positions.notFound;
+  if (key === "admin.positions.notFound") return messages[locale].admin.positions.notFound;
   if (key === "admin.departmentLeaders.notFound")
     return messages[locale].admin.departmentLeaders.notFound;
   if (key === "admin.guard.invalidAppKey") return messages[locale].admin.guard.invalidAppKey;

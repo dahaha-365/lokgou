@@ -29,6 +29,7 @@ model User {
   mobile             String?            @unique
   username           String             @unique
   name               String?
+  positionId          Int?
   passwordHash       String
   enableState        Int                @default(0)
   isAdmin            Boolean            @default(false)
@@ -41,6 +42,7 @@ model User {
   permissions        UserPermission[]
   sessions           UserSession[]
   operationLogs      AdminOperationLog[]
+  position            Position?          @relation(fields: [positionId], references: [id])
 }
 
 model UserSession {
@@ -69,6 +71,18 @@ model Department {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   deletedAt   DateTime?
+}
+
+model Position {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  description String?
+  enableState Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  users       User[]
 }
 
 model DepartmentLeader {

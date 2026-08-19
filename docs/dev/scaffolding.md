@@ -26,13 +26,13 @@ apps/api/src/modules/reports/
 ## 创建子模块
 
 ```bash
-bun run scaffold:submodule admin audit-logs
+bun run scaffold:submodule admin system/audit-logs
 ```
 
 生成：
 
 ```text
-apps/api/src/modules/admin/audit-logs/
+apps/api/src/modules/admin/system/audit-logs/
   audit-logs.controller.ts
   audit-logs.service.ts
 ```
@@ -53,5 +53,5 @@ apps/api/src/modules/admin/audit-logs/
 
 ```bash
 bun run scaffold module reports
-bun run scaffold submodule admin audit-logs
+bun run scaffold submodule admin system/audit-logs
 ```

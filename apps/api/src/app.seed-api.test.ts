@@ -137,7 +137,10 @@ seedTest(
 
     await get("/admin/dicts", "/admin/dicts");
     await get("/admin/attachments", "/admin/attachments");
-    await get(`/admin/audit-logs/users/${adminId}`, "/admin/audit-logs/{resource}/{recordId}");
+    await get(
+      `/admin/system/audit-logs/users/${adminId}`,
+      "/admin/system/audit-logs/{resource}/{recordId}"
+    );
   },
   30_000
 );

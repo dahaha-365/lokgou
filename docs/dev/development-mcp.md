@@ -56,7 +56,7 @@ Copy-Item .ai/dev-mcp.config.example.json .ai/dev-mcp.config.json
 - `orchestrator` 回退到 `largeModel`。
 - `code-gen`、`validator`、`summarizer`、`translator` 回退到 `smallModel`。
 
-角色 `parameters` 与默认模型参数合并。当前支持 `temperature` 和 `maxTokens`。
+角色 `parameters` 与默认模型参数合并。当前支持 `temperature` 和 `maxTokens`；未显式配置的参数不会发送到模型请求中，由模型服务使用自身默认值。
 
 ## 上下文预算
 

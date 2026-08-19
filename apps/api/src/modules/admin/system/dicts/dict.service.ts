@@ -6,7 +6,7 @@ import type {
   DictQuery,
   DictUpdate,
 } from "@lokgou/schemas";
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 
 export type DictFailure = "DICT_NOT_FOUND" | "DICT_HAS_ITEMS";
 export type DictItemFailure = "DICT_NOT_FOUND" | "DICT_ITEM_NOT_FOUND";

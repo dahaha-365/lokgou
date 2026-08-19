@@ -11,6 +11,7 @@ description: 调用 lokgou Admin API 时的路由前缀与 admin-app-key 鉴权�
 /admin/users
 /admin/departments
 /admin/departments/leader
+/admin/hr/positions
 /admin/roles
 /admin/permissions
 /admin/menus
@@ -20,6 +21,10 @@ description: 调用 lokgou Admin API 时的路由前缀与 admin-app-key 鉴权�
 ```
 
 部署者可通过 `ADMIN_PREFIX` 修改前缀。
+
+## 职位
+
+`/admin/hr/positions` 是 HR 子模块下的职位管理接口，支持职位编码、名称、说明和启用状态的创建、分页查询、修改与软删除；列表可按编码或名称关键字、名称及启用状态筛选。
 
 ## 鉴权
 
@@ -130,6 +135,6 @@ token 请求头名称可通过 `ADMIN_AUTHORIZATION_HEADER` 配置，默认值�
 
 所有成功的管理端资源创建、修改、分配和删除操作都会记录实际 access token 对应的操作用户、请求方法、资源和路径。操作人由服务端鉴权上下文确定，客户端不能指定或覆盖。
 
-使用 `GET /admin/audit-logs/:resource/:recordId` 查询指定资源记录的审计日志。`resource` 为小写连字符资源名称，`recordId` 为正整数；可使用 `page`、`pageSize`、`actorId`、`method`（`POST`、`PUT`、`PATCH`、`DELETE`）、`action`（`create`、`update`、`delete`）、`startAt` 与 `endAt`（ISO 日期时间）筛选。每条日志返回安全的操作人信息：`id`、`username`、可为空的 `name` 及服务端计算的 `displayName`，不会返回密码或会话信息。
+使用 `GET /admin/system/audit-logs/:resource/:recordId` 查询指定资源记录的审计日志。`resource` 为小写连字符资源名称，`recordId` 为正整数；可使用 `page`、`pageSize`、`actorId`、`method`（`POST`、`PUT`、`PATCH`、`DELETE`）、`action`（`create`、`update`、`delete`）、`startAt` 与 `endAt`（ISO 日期时间）筛选。每条日志返回安全的操作人信息：`id`、`username`、可为空的 `name` 及服务端计算的 `displayName`，不会返回密码或会话信息。
 
 本地开发环境执行 `bun run db:seed` 后可使用 `admin` / `admin123456` 测试登录。该账号是用于初始化权限体系的引导超级管理员；普通管理用户必须先获得权限分配后才能访问受保护的管理资源。该账号仅用于演示，禁止用于生产环境。

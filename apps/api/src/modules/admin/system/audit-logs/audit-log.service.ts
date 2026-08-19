@@ -1,5 +1,5 @@
 import type { AuditLogQuery } from "@lokgou/schemas";
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 
 type RecordOperationInput = {
   actorId: number;

@@ -23,6 +23,6 @@ export const auditLogController = new Elysia({ prefix: "/audit-logs" }).get(
     params: AuditLogPathSchema,
     query: AuditLogQuerySchema,
     response: { 200: AuditLogListResponseSchema },
-    detail: { tags: ["Audit Logs"], summary: "查询资源审计日志" },
+    detail: { tags: ["System / Audit Logs"], summary: "查询资源审计日志" },
   }
 );

@@ -17,8 +17,8 @@ import {
   DictUpdateSchema,
   SuccessResponseSchema,
 } from "@lokgou/schemas";
-import { requestLocale, t } from "../../../lib/i18n";
-import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
+import { requestLocale, t } from "../../../../lib/i18n";
+import { serializeDates, serializeDatesArray } from "../../../../lib/serialize";
 import { dictService, type DictFailure, type DictItemFailure } from "./dict.service";
 
 function error(
