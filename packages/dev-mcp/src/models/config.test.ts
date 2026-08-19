@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { resolveModel, type DevMcpConfig, type ModelConfig } from "./config";
+import {
+  configSchema,
+  endpointSchema,
+  resolveModel,
+  type DevMcpConfig,
+  type ModelConfig,
+} from "./config";
 import { complete } from "./client";
 
 const config: DevMcpConfig = {
@@ -7,12 +13,14 @@ const config: DevMcpConfig = {
     baseUrl: "https://large.example/v1",
     apiKeyEnv: "LARGE_KEY",
     model: "large-model",
+    endpoint: "chat/completions",
     parameters: { temperature: 0.2, maxTokens: 8000 },
   },
   smallModel: {
     baseUrl: "https://small.example/v1",
     apiKeyEnv: "SMALL_KEY",
     model: "small-model",
+    endpoint: "chat/completions",
     parameters: { temperature: 0.1, maxTokens: 4000 },
   },
   roles: {
@@ -37,32 +45,47 @@ describe("resolveModel", () => {
   });
 });
 
+describe("endpoint configuration", () => {
+  test("defaults to chat completions", () => {
+    expect(endpointSchema.parse(undefined)).toBe("chat/completions");
+    expect(
+      configSchema.parse({ ...config, largeModel: { ...config.largeModel, endpoint: undefined } })
+        .largeModel.endpoint
+    ).toBe("chat/completions");
+  });
+});
+
 describe("complete", () => {
-  async function captureRequest(parameters: ModelConfig["parameters"]) {
+  async function captureRequest(endpoint: ModelConfig["endpoint"], responseBody: unknown) {
     const originalFetch = globalThis.fetch;
     const originalKey = process.env.TEST_MODEL_KEY;
     process.env.TEST_MODEL_KEY = "test-key";
     let requestBody: Record<string, unknown> | undefined;
-    globalThis.fetch = (async (_input, init) => {
+    let requestUrl: string | undefined;
+    let requestHeaders: Headers | undefined;
+    globalThis.fetch = (async (input, init) => {
+      requestUrl = String(input);
+      requestHeaders = new Headers(init?.headers);
       requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
-      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      return new Response(JSON.stringify(responseBody), {
         status: 200,
         headers: { "content-type": "application/json" },
       });
     }) as typeof fetch;
 
     try {
-      await complete(
+      const completion = await complete(
         {
           baseUrl: "https://model.example/v1",
           apiKeyEnv: "TEST_MODEL_KEY",
-          model: "model-without-temperature",
-          parameters,
+          model: "test-model",
+          endpoint,
+          parameters: { maxTokens: 100 },
         },
         "system",
         "prompt"
       );
-      return requestBody;
+      return { url: requestUrl, headers: requestHeaders, body: requestBody, completion };
     } finally {
       globalThis.fetch = originalFetch;
       if (originalKey === undefined) delete process.env.TEST_MODEL_KEY;
@@ -71,10 +94,67 @@ describe("complete", () => {
   }
 
   test("does not send temperature when it is not configured", async () => {
-    expect(await captureRequest({})).not.toHaveProperty("temperature");
+    const request = await captureRequest("chat/completions", {
+      choices: [{ message: { content: "ok" } }],
+    });
+    expect(request).toMatchObject({
+      url: "https://model.example/v1/chat/completions",
+      body: {
+        model: "test-model",
+        messages: [{ role: "system" }, { role: "user" }],
+        max_tokens: 100,
+      },
+    });
+    expect(request.headers?.get("authorization")).toBe("Bearer test-key");
   });
 
   test("sends an explicitly configured zero temperature", async () => {
-    expect(await captureRequest({ temperature: 0 })).toHaveProperty("temperature", 0);
+    const request = await captureRequest("responses", { output_text: "ok" });
+    expect(request).toMatchObject({
+      url: "https://model.example/v1/responses",
+      body: {
+        model: "test-model",
+        instructions: "system",
+        input: "prompt",
+        max_output_tokens: 100,
+      },
+    });
+    expect(request.headers?.get("authorization")).toBe("Bearer test-key");
+  });
+
+  test("uses Anthropic Messages authentication and response content", async () => {
+    const request = await captureRequest("messages", {
+      content: [
+        { type: "text", text: "hello " },
+        { type: "text", text: "world" },
+      ],
+    });
+    expect(request).toMatchObject({
+      url: "https://model.example/v1/messages",
+      body: {
+        model: "test-model",
+        system: "system",
+        messages: [{ role: "user", content: "prompt" }],
+      },
+    });
+    expect(request.headers?.get("x-api-key")).toBe("test-key");
+    expect(request.headers?.get("anthropic-version")).toBe("2023-06-01");
+    expect(request.completion).toBe("hello world");
+  });
+
+  test("parses Responses output content and ignores reasoning items", async () => {
+    const request = await captureRequest("responses", {
+      output: [
+        { content: [{ type: "reasoning", text: "internal" }] },
+        {
+          content: [
+            { type: "output_text", text: "hello " },
+            { type: "text", text: "world" },
+          ],
+        },
+      ],
+    });
+    expect(request.url).toBe("https://model.example/v1/responses");
+    expect(request.completion).toBe("hello world");
   });
 });

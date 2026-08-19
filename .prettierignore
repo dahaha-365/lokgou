@@ -7,3 +7,4 @@ apps/api/src/generated/
 *.db-shm
 *.db-wal
 bun.lock
+opencode.json

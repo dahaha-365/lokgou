@@ -1,4 +1,3 @@
-import { jwt } from "@elysia/jwt";
 import { Elysia } from "elysia";
 import {
   UserCreateSchema,
@@ -16,11 +15,8 @@ import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
 import { requestLocale, t } from "../../../lib/i18n";
 import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
 import { accessibleBy } from "../../../lib/casl-prisma";
-import { getAdminAuthorizationHeader, getJwtSecret } from "../../../lib/config";
+import { getAdminAuthorizationHeader } from "../../../lib/config";
 import { permissionService } from "../permissions/permission.service";
-
-const jwtSecret = getJwtSecret();
-if (!jwtSecret) throw new Error("JWT_SECRET must be configured.");
 
 function accessToken(headers: Record<string, string | undefined>): string | undefined {
   const value = headers[getAdminAuthorizationHeader()];
@@ -33,8 +29,13 @@ function numericClaim(value: unknown): number | null {
     : null;
 }
 
+type AccessJwtContext = {
+  accessJwt: {
+    verify: (token: string | undefined) => Promise<{ sub?: unknown } | false>;
+  };
+};
+
 export const userController = new Elysia({ prefix: "/users" })
-  .use(jwt({ name: "accessJwt", secret: jwtSecret, exp: "15m" }))
   .post(
     "/",
     async ({ body, request, status }) => {
@@ -64,7 +65,9 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .get(
     "/",
-    async ({ query, headers, accessJwt }) => {
+    async (context) => {
+      const { query, headers } = context;
+      const { accessJwt } = context as typeof context & AccessJwtContext;
       const payload = await accessJwt.verify(accessToken(headers));
       const userId = payload ? numericClaim(payload.sub) : null;
       const ability = userId ? await permissionService.abilityFor(userId) : null;
@@ -82,7 +85,9 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .get(
     "/:id",
-    async ({ params, request, headers, accessJwt, status }) => {
+    async (context) => {
+      const { params, request, headers, status } = context;
+      const { accessJwt } = context as typeof context & AccessJwtContext;
       const payload = await accessJwt.verify(accessToken(headers));
       const userId = payload ? numericClaim(payload.sub) : null;
       const ability = userId ? await permissionService.abilityFor(userId) : null;
@@ -109,7 +114,9 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .patch(
     "/:id",
-    async ({ params, body, request, headers, accessJwt, status }) => {
+    async (context) => {
+      const { params, body, request, headers, status } = context;
+      const { accessJwt } = context as typeof context & AccessJwtContext;
       const payload = await accessJwt.verify(accessToken(headers));
       const userId = payload ? numericClaim(payload.sub) : null;
       const ability = userId ? await permissionService.abilityFor(userId) : null;
@@ -137,7 +144,9 @@ export const userController = new Elysia({ prefix: "/users" })
   )
   .delete(
     "/:id",
-    async ({ params, request, headers, accessJwt, status }) => {
+    async (context) => {
+      const { params, request, headers, status } = context;
+      const { accessJwt } = context as typeof context & AccessJwtContext;
       const payload = await accessJwt.verify(accessToken(headers));
       const userId = payload ? numericClaim(payload.sub) : null;
       const ability = userId ? await permissionService.abilityFor(userId) : null;

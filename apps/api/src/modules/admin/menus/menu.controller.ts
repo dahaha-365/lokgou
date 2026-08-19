@@ -1,5 +1,4 @@
 import { Elysia } from "elysia";
-import { jwt } from "@elysia/jwt";
 import {
   AuthUnauthorizedResponseSchema,
   MenuCreateSchema,
@@ -16,7 +15,7 @@ import {
   MenuUserParamsSchema,
   SuccessResponseSchema,
 } from "@lokgou/schemas";
-import { getAdminAuthorizationHeader, getJwtSecret } from "../../../lib/config";
+import { getAdminAuthorizationHeader } from "../../../lib/config";
 import { requestLocale, t } from "../../../lib/i18n";
 import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
 import { menuService, type MenuFailure } from "./menu.service";
@@ -41,8 +40,6 @@ const error = <T extends MenuFailure>(request: Request, code: T): { message: str
 const menuFailures = MenuNotFoundResponseSchema.or(MenuParentNotFoundResponseSchema).or(
   MenuPermissionNotFoundResponseSchema
 );
-const jwtSecret = getJwtSecret();
-if (!jwtSecret) throw new Error("JWT_SECRET must be configured.");
 
 function accessToken(headers: Record<string, string | undefined>): string | undefined {
   const value = headers[getAdminAuthorizationHeader()];
@@ -55,8 +52,13 @@ function userIdFromClaim(value: unknown): number | null {
     : null;
 }
 
+type AccessJwtContext = {
+  accessJwt: {
+    verify: (token: string | undefined) => Promise<{ sub?: unknown } | false>;
+  };
+};
+
 export const menuController = new Elysia({ prefix: "/menus" })
-  .use(jwt({ name: "accessJwt", secret: jwtSecret, exp: "15m" }))
   .post(
     "/",
     async ({ body, request, status }) => {
@@ -106,7 +108,9 @@ export const menuController = new Elysia({ prefix: "/menus" })
   )
   .get(
     "/effective",
-    async ({ headers, accessJwt, query, request, status }) => {
+    async (context) => {
+      const { headers, query, request, status } = context;
+      const { accessJwt } = context as typeof context & AccessJwtContext;
       const payload = await accessJwt.verify(accessToken(headers));
       const userId = payload ? userIdFromClaim(payload.sub) : null;
       if (!userId)

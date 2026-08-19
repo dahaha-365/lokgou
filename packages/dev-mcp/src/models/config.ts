@@ -1,9 +1,14 @@
 import { z } from "zod";
 
+export const endpointSchema = z
+  .enum(["chat/completions", "responses", "messages"])
+  .default("chat/completions");
+
 const modelSchema = z.object({
   baseUrl: z.url(),
   apiKeyEnv: z.string().min(1),
   model: z.string().min(1),
+  endpoint: endpointSchema,
   parameters: z
     .object({
       temperature: z.number().min(0).max(2).optional(),
@@ -12,7 +17,7 @@ const modelSchema = z.object({
     .default({}),
 });
 
-const configSchema = z.object({
+export const configSchema = z.object({
   largeModel: modelSchema,
   smallModel: modelSchema,
   roles: z.record(z.string(), modelSchema.partial()).default({}),

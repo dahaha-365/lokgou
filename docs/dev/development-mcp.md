@@ -47,6 +47,16 @@ Copy-Item .ai/dev-mcp.config.example.json .ai/dev-mcp.config.json
 }
 ```
 
+## 模型 endpoint 配置
+
+每个模型支持 `endpoint`：`chat/completions`（默认）、`responses` 或 `messages`。分别对应 OpenAI Chat Completions、OpenAI Responses 和 Anthropic Messages API；客户端会根据 endpoint 选择请求路径、认证头、请求体和响应解析方式。
+
+```json
+"endpoint": "chat/completions"
+```
+
+`messages` 使用 `x-api-key` 和 `anthropic-version: 2023-06-01`；另外两个 endpoint 使用 Bearer token。模型参数中的 `maxTokens` 会映射到各 API 对应的字段。
+
 设置对应环境变量。`.ai/dev-mcp.config.json` 已被 Git 忽略，不能提交 API key。
 
 ## 角色模型回退
@@ -112,7 +122,7 @@ bun run mcp:install:opencode
 
 ## 客户端连接
 
-`.ai/dev-mcp.client.example.json` 是 OpenCode stdio 连接的参考样例。通常直接执行 `bun run mcp:install:opencode` 即可将等价的 MCP 条目安装到当前用户的 OpenCode 配置；如需手动配置，复制为 `.ai/dev-mcp.client.json` 后按本机路径调整。该文件同样被 Git 忽略，不应写入模型配置或凭据。
+`.ai/dev-mcp.client.example.json` 是 OpenCode stdio 连接的参考样例，其中使用 command 数组启动 MCP 进程。通常直接执行 `bun run mcp:install:opencode` 即可将等价的 MCP 条目安装到当前用户的 OpenCode 配置；如需手动配置，复制为 `.ai/dev-mcp.client.json` 后按本机路径调整。使用 Streamable HTTP 时，客户端应改为连接 `http://127.0.0.1:3000/mcp`，而不是启动 stdio 子进程。该文件同样被 Git 忽略，不应写入模型配置或凭据。
 
 ## 阶段与调度策略
 
