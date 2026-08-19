@@ -332,15 +332,19 @@ model Attachment {
 }
 
 model AdminOperationLog {
-  id        Int      @id @default(autoincrement())
-  actorId   Int
-  method    String
-  resource  String
-  path      String
-  createdAt DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  actorId        Int
+  method         String
+  action         String
+  resource       String
+  targetResource String
+  targetId       Int?
+  path           String
+  createdAt      DateTime @default(now())
 
   actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   @@index([actorId, createdAt])
   @@index([resource, createdAt])
+  @@index([targetResource, targetId, createdAt])
 }

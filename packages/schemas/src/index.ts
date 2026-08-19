@@ -9,3 +9,4 @@ export * from "./permission";
 export * from "./menu";
 export * from "./dict";
 export * from "./attachment";
+export * from "./audit-log";

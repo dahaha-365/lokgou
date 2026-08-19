@@ -8,6 +8,7 @@ import { permissionController } from "./permissions/permission.controller";
 import { menuController } from "./menus/menu.controller";
 import { dictController } from "./dicts/dict.controller";
 import { attachmentController } from "./attachments/attachment.controller";
+import { auditLogController } from "./audit-logs/audit-log.controller";
 
 export const adminRoutes = new Elysia()
   .use(authController)
@@ -18,4 +19,5 @@ export const adminRoutes = new Elysia()
   .use(permissionController)
   .use(menuController)
   .use(dictController)
-  .use(attachmentController);
+  .use(attachmentController)
+  .use(auditLogController);

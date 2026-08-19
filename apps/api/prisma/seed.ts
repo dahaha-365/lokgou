@@ -35,6 +35,7 @@ const subjects = [
   "AutoCode",
   "Dict",
   "Attachment",
+  "AuditLog",
 ];
 const fixedDates = {
   past: new Date("2024-01-15T08:00:00.000Z"),
@@ -57,6 +58,7 @@ async function main() {
   await prisma.userRole.deleteMany();
   await prisma.departmentLeader.deleteMany();
   await prisma.userSession.deleteMany();
+  await prisma.adminOperationLog.deleteMany();
   // Menu parents use Restrict, so remove the hierarchy from its leaves upward.
   while (true) {
     const leaves = await prisma.menu.findMany({

@@ -24,6 +24,7 @@ const documentation: NonNullable<ElysiaOpenAPIConfig["documentation"]> & {
     { name: "Menus", description: "分组菜单、菜单项与按钮管理" },
     { name: "Dicts", description: "系统数据字典与字典项管理" },
     { name: "Attachments", description: "系统附件上传、分类与标签管理" },
+    { name: "Audit Logs", description: "管理端资源操作审计日志" },
   ],
   "x-tagGroups": [
     {
@@ -38,6 +39,7 @@ const documentation: NonNullable<ElysiaOpenAPIConfig["documentation"]> & {
         "Menus",
         "Dicts",
         "Attachments",
+        "Audit Logs",
         "System / AutoCode",
       ],
     },

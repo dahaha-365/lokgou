@@ -5,6 +5,7 @@
     "apps/*",
     "packages/*"
   ],
+  "type": "module",
   "scripts": {
     "dev": "bun run db:generate && bun --watch apps/api/src/app.ts",
     "start": "bun --filter @lokgou/api start",
