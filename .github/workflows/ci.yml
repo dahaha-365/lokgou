@@ -7,11 +7,6 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: file:./prisma/ci-api-smoke.db
-      ADMIN_APP_KEY: ci-admin-app-key
-      JWT_SECRET: ci-jwt-secret-with-at-least-32-characters
-      CI_API_SEED_TEST: "true"
     steps:
       - uses: actions/checkout@main
       - uses: oven-sh/setup-bun@v2
@@ -19,4 +14,10 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bun run quality
-      - run: bun run test:api:seed
+      - name: Seed database and run OpenAPI smoke test
+        env:
+          DATABASE_URL: file:./prisma/ci-api-smoke.db
+          ADMIN_APP_KEY: ci-admin-app-key
+          JWT_SECRET: ci-jwt-secret-with-at-least-32-characters
+          CI_API_SEED_TEST: "true"
+        run: bun run test:api:seed
