@@ -12,11 +12,11 @@ import {
   AttachmentUploadSchema,
   SuccessResponseSchema,
 } from "@lokgou/schemas";
-import { requestLocale, t } from "../../../lib/i18n";
-import { serializeDates } from "../../../lib/serialize";
+import { requestLocale, t } from "@api/lib/i18n";
+import { serializeDates } from "@api/lib/serialize";
 import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
 import { attachmentService, uploadAttachment } from "./attachment.service";
-import { getAttachmentStoragePath } from "../../../lib/config";
+import { getAttachmentStoragePath } from "@api/lib/config";
 import { relative, resolve, sep } from "node:path";
 
 type AttachmentError = "ATTACHMENT_NOT_FOUND" | "ATTACHMENT_FILE_NOT_FOUND";
@@ -127,7 +127,7 @@ export const attachmentController = new Elysia({ prefix: "/attachments" })
   .get(
     "/:id",
     async ({ params, request, status }) => {
-      const item = await attachmentService.findById(params.id);
+      const item = await attachmentService.show(params.id);
       return item ? responseItem(item) : status(404, error(request, "ATTACHMENT_NOT_FOUND"));
     },
     {
@@ -154,7 +154,7 @@ export const attachmentController = new Elysia({ prefix: "/attachments" })
   .get(
     "/:id/download",
     async ({ params, request, set, status }) => {
-      const item = await attachmentService.findById(params.id);
+      const item = await attachmentService.show(params.id);
       if (!item) return status(404, error(request, "ATTACHMENT_NOT_FOUND"));
       const path = downloadPath(item.storagePath);
       if (!path || !(await Bun.file(path).exists()))

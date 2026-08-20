@@ -1,29 +1,35 @@
 import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
-const [kind, ...names] = process.argv.slice(2);
 const modulesDirectory = "apps/api/src/modules";
+const templatesDirectory = resolve("scripts/scaffold-templates");
+const [, , command, ...arguments_] = process.argv;
 
 function fail(message: string): never {
   throw new Error(
-    `${message}\n\nUsage:\n  bun run scaffold:module <kebab-case-name>\n  bun run scaffold:submodule <parent> <kebab-case-name>`
+    `${message}\n\nUsage:\n  bun run scaffold module <path> [--model Model]\n  bun run scaffold submodule <parent> <path> [--model Model]`
   );
 }
 
-function validateName(name: string | undefined, label: string): string {
-  if (!name || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(name)) {
-    fail(`${label} must use kebab-case.`);
-  }
+function validateName(name: string, label: string): string {
+  if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(name)) fail(`${label} must use kebab-case.`);
   return name;
 }
 
 function pascalCase(name: string): string {
-  return name.replace(/(?:^|-)([a-z0-9])/g, (_, character: string) => character.toUpperCase());
+  return name.replace(/(?:^|-)([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 }
 
 function camelCase(name: string): string {
-  const pascal = pascalCase(name);
-  return pascal[0]!.toLowerCase() + pascal.slice(1);
+  const value = pascalCase(name);
+  return value[0]!.toLowerCase() + value.slice(1);
+}
+
+async function template(name: string, values: Record<string, string>): Promise<string> {
+  let source = await Bun.file(join(templatesDirectory, name)).text();
+  for (const [key, value] of Object.entries(values))
+    source = source.replaceAll(`{{${key}}}`, value);
+  return source;
 }
 
 async function writeFile(path: string, content: string): Promise<void> {
@@ -31,70 +37,87 @@ async function writeFile(path: string, content: string): Promise<void> {
   await Bun.write(path, content);
 }
 
-async function addTopLevelModule(name: string): Promise<void> {
-  const moduleDirectory = join(modulesDirectory, name);
-  const variable = camelCase(name);
-  const controllerPath = join(moduleDirectory, `${name}.controller.ts`);
-  const routesPath = join(moduleDirectory, "routes.ts");
+function option(name: string): string | undefined {
+  const index = arguments_.indexOf(name);
+  return index >= 0 ? arguments_[index + 1] : undefined;
+}
 
+async function addTopLevel(name: string, model?: string) {
+  const directory = join(modulesDirectory, name);
+  const values = {
+    name,
+    camel: camelCase(name),
+    pascal: pascalCase(name),
+    modelCamel: model ? camelCase(model) : "model",
+  };
   await writeFile(
-    controllerPath,
-    `import { Elysia } from "elysia";\nimport { ${variable}Routes } from "./routes";\n\nexport const ${variable}Controller = new Elysia({ prefix: "/${name}" }).use(${variable}Routes);\n`
+    join(directory, `${name}.controller.ts`),
+    await template("module.controller.ts.tmpl", values)
   );
-  await writeFile(
-    routesPath,
-    `import { Elysia } from "elysia";\n\nexport const ${variable}Routes = new Elysia();\n`
-  );
-
+  await writeFile(join(directory, "routes.ts"), await template("module.routes.ts.tmpl", values));
   const appPath = "apps/api/src/app.ts";
   const appSource = await Bun.file(appPath).text();
-  const importLine = `import { ${variable}Controller } from "./modules/${name}/${name}.controller";`;
-  const updatedSource = appSource
+  const importLine = `import { ${values.camel}Controller } from "./modules/${name}/${name}.controller";`;
+  const updated = appSource
     .replace(
-      'import { adminController } from "./modules/admin/admin.controller";',
-      `import { adminController } from "./modules/admin/admin.controller";\n${importLine}`
+      'import { adminController } from "@api/admin/admin.controller";',
+      (line) => `${line}\n${importLine}`
     )
-    .replace("  .use(adminController);", `  .use(adminController)\n  .use(${variable}Controller);`);
-
-  if (updatedSource === appSource)
-    fail("Could not find the module registration anchor in apps/api/src/app.ts.");
-  await Bun.write(appPath, updatedSource);
+    .replace(
+      "  .use(adminController);",
+      `  .use(adminController)\n  .use(${values.camel}Controller);`
+    );
+  if (updated === appSource) fail("Could not find app registration anchor.");
+  await Bun.write(appPath, updated);
 }
 
-async function addSubmodule(parent: string, name: string): Promise<void> {
-  const parentDirectory = join(modulesDirectory, parent);
+async function addSubmodule(parent: string, path: string, model?: string) {
+  const parts = path
+    .split("/")
+    .filter(Boolean)
+    .map((part) => validateName(part, "Module name"));
+  if (!parts.length) fail("Submodule path is required.");
+  const name = parts.at(-1)!;
+  const parentDirectory = join(modulesDirectory, parent, ...parts.slice(0, -1));
+  const directory = join(parentDirectory, name);
   const routesPath = join(parentDirectory, "routes.ts");
-  const submoduleDirectory = join(parentDirectory, name);
-  const variable = camelCase(name);
-  const pascal = pascalCase(name);
-  const controllerPath = join(submoduleDirectory, `${name}.controller.ts`);
-
   if (!existsSync(routesPath)) fail(`Parent module "${parent}" does not have routes.ts.`);
+  const values = {
+    name,
+    camel: camelCase(name),
+    pascal: pascalCase(name),
+    modelCamel: model ? camelCase(model) : "model",
+  };
   await writeFile(
-    controllerPath,
-    `import { Elysia } from "elysia";\n\nexport const ${variable}Controller = new Elysia({ prefix: "/${name}" }).get("/", () => ({\n  message: "${pascal} route is ready"\n}));\n`
+    join(directory, `${name}.controller.ts`),
+    await template("submodule.controller.ts.tmpl", values)
   );
   await writeFile(
-    join(submoduleDirectory, `${name}.service.ts`),
-    `export const ${variable}Service = {};\n`
+    join(directory, `${name}.service.ts`),
+    await template("submodule.service.ts.tmpl", values)
   );
-
   const routesSource = await Bun.file(routesPath).text();
-  const importLine = `import { ${variable}Controller } from "./${name}/${name}.controller";`;
-  const updatedSource = routesSource
-    .replace(/import \{ Elysia \} from "elysia";\n/, (line) => `${line}${importLine}\n`)
-    .replace(/;\n$/, `.use(${variable}Controller);\n`);
-  if (updatedSource === routesSource) fail(`Could not update ${routesPath}.`);
-  await Bun.write(routesPath, updatedSource);
+  const updated = routesSource
+    .replace(
+      /import \{ Elysia \} from "elysia";\n/,
+      (line) => `${line}${await template("submodule.routes-import.tmpl", values)}\n`
+    )
+    .replace(/;\n$/, `.use(${values.camel}Controller);\n`);
+  if (updated === routesSource) fail(`Could not update ${routesPath}.`);
+  await Bun.write(routesPath, updated);
 }
 
-if (kind === "module" && names.length === 1) {
-  await addTopLevelModule(validateName(names[0], "Module name"));
-} else if (kind === "submodule" && names.length === 2) {
-  await addSubmodule(
-    validateName(names[0], "Parent module name"),
-    validateName(names[1], "Submodule name")
+const model = option("--model");
+if (command === "module" && arguments_.filter((value) => !value.startsWith("--")).length === 1)
+  await addTopLevel(
+    validateName(
+      arguments_.find((value) => !value.startsWith("--"))!,
+      "Module name"
+    ),
+    model
   );
-} else {
-  fail("Invalid scaffold command.");
-}
+else if (command === "submodule") {
+  const positional = arguments_.filter((value) => !value.startsWith("--"));
+  if (positional.length !== 2) fail("Submodule requires parent and path.");
+  await addSubmodule(validateName(positional[0]!, "Parent module name"), positional[1]!, model);
+} else fail("Invalid scaffold command.");

@@ -1,8 +1,9 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "@api/lib/prisma";
 import { autoCodeService } from "../system/autocode/autocode.service";
 import type { UserCreate, UserUpdate, UserQuery } from "@lokgou/schemas";
+import { createCrudService } from "@api/lib/crud-service";
 
-export const userService = {
+export const userService = createCrudService({
   async create(data: UserCreate) {
     const { password, username, ...userData } = data;
     return prisma.user.create({
@@ -13,7 +14,7 @@ export const userService = {
       },
     });
   },
-  findById(id: number, accessWhere?: object) {
+  show(id: number, accessWhere?: object) {
     return prisma.user.findFirst({
       where: { AND: [{ id, deletedAt: null }, ...(accessWhere ? [accessWhere] : [])] },
     });
@@ -58,4 +59,4 @@ export const userService = {
     ]);
     return { items, page, pageSize, total };
   },
-};
+});

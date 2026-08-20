@@ -15,9 +15,9 @@ import {
   MenuUserParamsSchema,
   SuccessResponseSchema,
 } from "@lokgou/schemas";
-import { getAdminAuthorizationHeader } from "../../../lib/config";
-import { requestLocale, t } from "../../../lib/i18n";
-import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
+import { getAdminAuthorizationHeader } from "@api/lib/config";
+import { requestLocale, t } from "@api/lib/i18n";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
 import { menuService, type MenuFailure } from "./menu.service";
 
 const error = <T extends MenuFailure>(request: Request, code: T): { message: string; code: T } => ({
@@ -139,7 +139,7 @@ export const menuController = new Elysia({ prefix: "/menus" })
   .get(
     "/:id",
     async ({ params, request, status }) => {
-      const item = await menuService.findById(params.id);
+      const item = await menuService.show(params.id);
       return item
         ? MenuResponseSchema.parse(serializeDates(item))
         : status(

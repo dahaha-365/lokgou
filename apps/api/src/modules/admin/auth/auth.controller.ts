@@ -10,9 +10,9 @@ import {
   UserResponseSchema,
 } from "@lokgou/schemas";
 import { Elysia } from "elysia";
-import { getAdminAuthorizationHeader, getJwtSecret } from "../../../lib/config";
-import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
-import { requestLocale, t } from "../../../lib/i18n";
+import { getAdminAuthorizationHeader, getJwtSecret } from "@api/lib/config";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
+import { requestLocale, t } from "@api/lib/i18n";
 import { accessTokenLifetimeSeconds, authService } from "./auth.service";
 
 const jwtSecret = getJwtSecret();

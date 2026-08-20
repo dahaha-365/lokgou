@@ -7,7 +7,7 @@ import {
   SuccessResponseSchema,
 } from "@lokgou/schemas";
 import { Elysia } from "elysia";
-import { serializeDates, serializeDatesArray } from "../../../../lib/serialize";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
 import { autoCodeService } from "./autocode.service";
 
 export const autoCodeController = new Elysia({ prefix: "/autocode" })

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { AbilityBuilder } from "@casl/ability";
-import { createPrismaAbility, type AppAbility } from "../../../lib/casl-prisma";
+import { createPrismaAbility, type AppAbility } from "@api/lib/casl-prisma";
 
 describe("permission precedence", () => {
   test("higher-priority user rules override user-role, department-role, and role rules", () => {

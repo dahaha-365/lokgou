@@ -12,10 +12,10 @@ import {
 } from "@lokgou/schemas";
 import { userService } from "./user.service";
 import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
-import { requestLocale, t } from "../../../lib/i18n";
-import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
-import { accessibleBy } from "../../../lib/casl-prisma";
-import { getAdminAuthorizationHeader } from "../../../lib/config";
+import { requestLocale, t } from "@api/lib/i18n";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
+import { accessibleBy } from "@api/lib/casl-prisma";
+import { getAdminAuthorizationHeader } from "@api/lib/config";
 import { permissionService } from "../permissions/permission.service";
 
 function accessToken(headers: Record<string, string | undefined>): string | undefined {
@@ -91,7 +91,7 @@ export const userController = new Elysia({ prefix: "/users" })
       const payload = await accessJwt.verify(accessToken(headers));
       const userId = payload ? numericClaim(payload.sub) : null;
       const ability = userId ? await permissionService.abilityFor(userId) : null;
-      const user = await userService.findById(
+      const user = await userService.show(
         params.id,
         ability ? accessibleBy(ability, "read").ofType("User") : undefined
       );
@@ -122,7 +122,7 @@ export const userController = new Elysia({ prefix: "/users" })
       const ability = userId ? await permissionService.abilityFor(userId) : null;
       if (
         !ability ||
-        !(await userService.findById(params.id, accessibleBy(ability, "update").ofType("User")))
+        !(await userService.show(params.id, accessibleBy(ability, "update").ofType("User")))
       )
         return status(404, {
           message: t(
@@ -152,7 +152,7 @@ export const userController = new Elysia({ prefix: "/users" })
       const ability = userId ? await permissionService.abilityFor(userId) : null;
       if (
         !ability ||
-        !(await userService.findById(params.id, accessibleBy(ability, "delete").ofType("User")))
+        !(await userService.show(params.id, accessibleBy(ability, "delete").ofType("User")))
       )
         return status(404, {
           message: t(

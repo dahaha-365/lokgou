@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "@api/lib/prisma";
 
 const refreshTokenLifetimeMs = 30 * 24 * 60 * 60 * 1000;
 

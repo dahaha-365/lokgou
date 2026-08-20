@@ -12,8 +12,8 @@ import {
 } from "@lokgou/schemas";
 import { departmentService } from "./department.service";
 import { AutoCodeRuleRequiredError } from "../system/autocode/autocode.service";
-import { requestLocale, t } from "../../../lib/i18n";
-import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
+import { requestLocale, t } from "@api/lib/i18n";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
 
 export const departmentController = new Elysia()
   .post(
@@ -61,7 +61,7 @@ export const departmentController = new Elysia()
   .get(
     "/:id",
     async ({ params, request, status }) => {
-      const department = await departmentService.findById(params.id);
+      const department = await departmentService.show(params.id);
       if (!department)
         return status(404, {
           message: t(
@@ -96,7 +96,7 @@ export const departmentController = new Elysia()
   .delete(
     "/:id",
     async ({ params }) => {
-      await departmentService.softDelete(params.id);
+      await departmentService.delete?.(params.id);
       return { success: true };
     },
     {

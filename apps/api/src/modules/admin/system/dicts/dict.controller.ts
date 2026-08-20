@@ -17,8 +17,8 @@ import {
   DictUpdateSchema,
   SuccessResponseSchema,
 } from "@lokgou/schemas";
-import { requestLocale, t } from "../../../../lib/i18n";
-import { serializeDates, serializeDatesArray } from "../../../../lib/serialize";
+import { requestLocale, t } from "@api/lib/i18n";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
 import { dictService, type DictFailure, type DictItemFailure } from "./dict.service";
 
 function error(
@@ -164,7 +164,7 @@ export const dictController = new Elysia({ prefix: "/dicts" })
   .get(
     "/:id",
     async ({ params, request, status }) => {
-      const item = await dictService.findById(params.id);
+      const item = await dictService.show(params.id);
       return item
         ? DictResponseSchema.parse(serializeDates(item))
         : status(404, error(request, "DICT_NOT_FOUND"));

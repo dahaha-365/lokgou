@@ -22,6 +22,12 @@ export function getAdminAuthorizationHeader(): string {
   return process.env.ADMIN_AUTHORIZATION_HEADER?.trim().toLowerCase() || "admin-authorization";
 }
 
+export function exposeErrorDetails(): boolean {
+  return ["1", "true", "yes", "on"].includes(
+    process.env.API_EXPOSE_ERROR_DETAILS?.trim().toLowerCase() ?? ""
+  );
+}
+
 export function getAttachmentStoragePath(): string {
   return resolve(
     process.cwd(),

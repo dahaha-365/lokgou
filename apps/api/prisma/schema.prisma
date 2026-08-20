@@ -24,17 +24,17 @@ enum MenuType {
 }
 
 model User {
-  id                 Int                @id @default(autoincrement())
-  email              String?            @unique
-  mobile             String?            @unique
-  username           String             @unique
+  id                 Int                  @id @default(autoincrement())
+  email              String?              @unique
+  mobile             String?              @unique
+  username           String               @unique
   name               String?
-  positionId          Int?
+  positionId         Int?
   passwordHash       String
-  enableState        Int                @default(0)
-  isAdmin            Boolean            @default(false)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  enableState        Int                  @default(0)
+  isAdmin            Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
   deletedAt          DateTime?
   leadingDepartments DepartmentLeader[]
   roles              UserRole[]
@@ -42,17 +42,17 @@ model User {
   permissions        UserPermission[]
   sessions           UserSession[]
   operationLogs      AdminOperationLog[]
-  position            Position?          @relation(fields: [positionId], references: [id])
+  position           Position?            @relation(fields: [positionId], references: [id])
 }
 
 model UserSession {
-  id               Int      @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   userId           Int
   refreshTokenHash String
   expiresAt        DateTime
   revokedAt        DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -74,13 +74,13 @@ model Department {
 }
 
 model Position {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
+  id          Int       @id @default(autoincrement())
+  code        String?   @unique
   name        String
   description String?
-  enableState Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  enableState Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
   users       User[]
 }
@@ -104,17 +104,17 @@ model DepartmentLeader {
 }
 
 model Role {
-  id          Int              @id @default(autoincrement())
-  code        String           @unique
-  name        String
-  description String?
-  permissions String           @default("[]")
-  enableState Int              @default(0)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  deletedAt   DateTime?
-  users       UserRole[]
-  departments DepartmentRole[]
+  id                    Int              @id @default(autoincrement())
+  code                  String           @unique
+  name                  String
+  description           String?
+  permissions           String           @default("[]")
+  enableState           Int              @default(0)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
+  users                 UserRole[]
+  departments           DepartmentRole[]
   permissionAssignments RolePermission[]
 }
 
@@ -124,8 +124,8 @@ model UserRole {
   roleId    Int
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        Role                 @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permissions UserRolePermission[]
 
   @@unique([userId, roleId])
@@ -133,15 +133,15 @@ model UserRole {
 }
 
 model DepartmentRole {
-  id                  Int                  @id @default(autoincrement())
-  departmentId        Int
-  roleId              Int
-  grantedPermissions  String               @default("[]")
-  revokedPermissions  String               @default("[]")
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  assignments         UserDepartmentRole[]
-  permissions         DepartmentRolePermission[]
+  id                 Int                        @id @default(autoincrement())
+  departmentId       Int
+  roleId             Int
+  grantedPermissions String                     @default("[]")
+  revokedPermissions String                     @default("[]")
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  assignments        UserDepartmentRole[]
+  permissions        DepartmentRolePermission[]
 
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
@@ -151,13 +151,13 @@ model DepartmentRole {
 }
 
 model UserDepartmentRole {
-  id               Int            @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   userId           Int
   departmentRoleId Int
-  startedAt        DateTime       @default(now())
+  startedAt        DateTime  @default(now())
   endedAt          DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   departmentRole DepartmentRole @relation(fields: [departmentRoleId], references: [id], onDelete: Cascade)
@@ -168,22 +168,22 @@ model UserDepartmentRole {
 }
 
 model Permission {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
-  name        String
-  category    String
-  action      String
-  subject     String
-  scope       String   @default("all")
-  enableState Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-  users       UserPermission[]
-  roles       RolePermission[]
-  userRoles   UserRolePermission[]
+  id              Int                        @id @default(autoincrement())
+  code            String                     @unique
+  name            String
+  category        String
+  action          String
+  subject         String
+  scope           String                     @default("all")
+  enableState     Int                        @default(0)
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+  deletedAt       DateTime?
+  users           UserPermission[]
+  roles           RolePermission[]
+  userRoles       UserRolePermission[]
   departmentRoles DepartmentRolePermission[]
-  menus       Menu[]
+  menus           Menu[]
 }
 
 model Menu {
@@ -203,9 +203,9 @@ model Menu {
   updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
 
-  parent     Menu?       @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children   Menu[]      @relation("MenuHierarchy")
-  permission Permission  @relation(fields: [permissionCode], references: [code])
+  parent     Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children   Menu[]     @relation("MenuHierarchy")
+  permission Permission @relation(fields: [permissionCode], references: [code])
 
   @@index([group, sortOrder])
   @@index([parentId])
@@ -273,24 +273,24 @@ model DepartmentRolePermission {
 }
 
 model AutoCodeRule {
-  id            Int               @id @default(autoincrement())
-  key           String            @unique
-  prefix        String
+  id             Int               @id @default(autoincrement())
+  key            String            @unique
+  prefix         String
   middleTemplate String            @default("")
-  counterLength Int
-  remark        String
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  counters      AutoCodeCounter[]
+  counterLength  Int
+  remark         String
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  counters       AutoCodeCounter[]
 }
 
 model AutoCodeCounter {
-  id        Int          @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   ruleId    Int
   middle    String
-  value     Int          @default(0)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  value     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   rule AutoCodeRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
@@ -310,15 +310,15 @@ model Dict {
 }
 
 model DictItem {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   dictId      Int
   label       String
   value       String
-  sortOrder   Int      @default(0)
+  sortOrder   Int       @default(0)
   description String?
-  enableState Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  enableState Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
   dict Dict @relation(fields: [dictId], references: [id], onDelete: Restrict)
@@ -328,17 +328,17 @@ model DictItem {
 }
 
 model Attachment {
-  id           Int      @id @default(autoincrement())
-  code         String   @unique
+  id           Int       @id @default(autoincrement())
+  code         String    @unique
   originalName String
   storageName  String
-  storagePath  String   @unique
+  storagePath  String    @unique
   mimeType     String
   size         Int
   category     String?
-  tags         String   @default("[]")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  tags         String    @default("[]")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
   @@index([category])

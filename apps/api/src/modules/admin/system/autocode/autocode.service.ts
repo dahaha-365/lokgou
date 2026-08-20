@@ -1,5 +1,5 @@
-import { createIdentifier, resolveIdentifierMiddle } from "../../../../lib/identifier";
-import { prisma } from "../../../../lib/prisma";
+import { createIdentifier, resolveIdentifierMiddle } from "@api/lib/identifier";
+import { prisma } from "@api/lib/prisma";
 import type { AutoCodeRuleCreate, AutoCodeRuleUpdate } from "@lokgou/schemas";
 
 export class AutoCodeRuleRequiredError extends Error {

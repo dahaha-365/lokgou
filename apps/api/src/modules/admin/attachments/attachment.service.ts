@@ -6,8 +6,9 @@ import {
   getAttachmentAllowedMimeTypes,
   getAttachmentMaxSize,
   getAttachmentStoragePath,
-} from "../../../lib/config";
-import { prisma } from "../../../lib/prisma";
+} from "@api/lib/config";
+import { prisma } from "@api/lib/prisma";
+import { createCrudModule, createCrudService } from "@api/lib/crud-service";
 import { autoCodeService } from "../system/autocode/autocode.service";
 
 export type AttachmentFailure = "ATTACHMENT_NOT_FOUND";
@@ -86,52 +87,55 @@ function hasTag(tags: string, tag: string) {
   }
 }
 
-export const attachmentService = {
-  findById(id: number) {
-    return prisma.attachment.findFirst({ where: { id, deletedAt: null } });
-  },
+export const attachmentService = createCrudModule(
+  createCrudService({
+    show(id: number) {
+      return prisma.attachment.findFirst({ where: { id, deletedAt: null } });
+    },
 
-  create(file: File, metadata: AttachmentMetadata) {
-    return uploadAttachment(file, metadata);
-  },
+    create(file: File, metadata: AttachmentMetadata) {
+      return uploadAttachment(file, metadata);
+    },
 
-  async list(params: AttachmentQuery) {
-    return prisma.$transaction(async (tx) => {
-      const items = await tx.attachment.findMany({
-        where: attachmentWhere(params),
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    async list(params: AttachmentQuery) {
+      return prisma.$transaction(async (tx) => {
+        const items = await tx.attachment.findMany({
+          where: attachmentWhere(params),
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        });
+        const matched = params.tag ? items.filter((item) => hasTag(item.tags, params.tag!)) : items;
+        return {
+          items: matched.slice((params.page - 1) * params.pageSize, params.page * params.pageSize),
+          page: params.page,
+          pageSize: params.pageSize,
+          total: matched.length,
+        };
       });
-      const matched = params.tag ? items.filter((item) => hasTag(item.tags, params.tag!)) : items;
-      return {
-        items: matched.slice((params.page - 1) * params.pageSize, params.page * params.pageSize),
-        page: params.page,
-        pageSize: params.pageSize,
-        total: matched.length,
-      };
-    });
-  },
+    },
 
-  async update(id: number, data: AttachmentUpdate) {
-    return prisma.$transaction(async (tx) => {
-      const attachment = await tx.attachment.findFirst({ where: { id, deletedAt: null } });
-      if (!attachment) return { failure: "ATTACHMENT_NOT_FOUND" } as const;
-      const update = {
-        ...(data.category === undefined ? {} : { category: data.category }),
-        ...(data.tags === undefined ? {} : { tags: JSON.stringify(normalizedTags(data.tags)) }),
-      };
-      return { item: await tx.attachment.update({ where: { id }, data: update }) } as const;
-    });
-  },
+    async update(id: number, data: AttachmentUpdate) {
+      return prisma.$transaction(async (tx) => {
+        const attachment = await tx.attachment.findFirst({ where: { id, deletedAt: null } });
+        if (!attachment) return { failure: "ATTACHMENT_NOT_FOUND" } as const;
+        const update = {
+          ...(data.category === undefined ? {} : { category: data.category }),
+          ...(data.tags === undefined ? {} : { tags: JSON.stringify(normalizedTags(data.tags)) }),
+        };
+        return { item: await tx.attachment.update({ where: { id }, data: update }) } as const;
+      });
+    },
 
-  async softDelete(id: number) {
-    return prisma.$transaction(async (tx) => {
-      const attachment = await tx.attachment.findFirst({ where: { id, deletedAt: null } });
-      if (!attachment) return { failure: "ATTACHMENT_NOT_FOUND" } as const;
-      await tx.attachment.update({ where: { id }, data: { deletedAt: new Date() } });
-      return {} as const;
-    });
-  },
-};
+    async softDelete(id: number) {
+      return prisma.$transaction(async (tx) => {
+        const attachment = await tx.attachment.findFirst({ where: { id, deletedAt: null } });
+        if (!attachment) return { failure: "ATTACHMENT_NOT_FOUND" } as const;
+        await tx.attachment.update({ where: { id }, data: { deletedAt: new Date() } });
+        return {} as const;
+      });
+    },
+  }),
+  {}
+);
 
 /**
  * Persist an uploaded file and create its attachment metadata.

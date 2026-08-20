@@ -12,6 +12,7 @@ description: lokgou 的本地开发、代码质量、API 模块和脚手架指�
 - [本地开发](./getting-started.md)：安装依赖、初始化数据库与启动服务。
 - [代码质量与工具](./tooling.md)：格式化、Lint、类型检查、测试与 CI。
 - [API 模块](./api-modules.md)：模块目录、路由注册与 admin 模块约定。
+- [CRUD 抽象](./crud-abstractions.md)：使用函数组合复用标准 CRUD service，避免基类继承。
 - [模块脚手架](./scaffolding.md)：创建顶级模块或子模块。
 - [开发流程 MCP](./development-mcp.md)：项目分析、任务路由和双模型编排。
 

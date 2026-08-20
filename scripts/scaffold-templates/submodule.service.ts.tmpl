@@ -1,0 +1,20 @@
+import { prisma } from "@api/lib/prisma";
+import { createCrudModule, createCrudServiceFromModel } from "@api/lib/crud-service";
+
+const standard{{pascal}}Service = createCrudServiceFromModel({
+  model: prisma.{{modelCamel}},
+  create(data: Record<string, unknown>) {
+    return this.model.create({ data });
+  },
+  show(identifier: unknown) {
+    return this.model.findFirst({ where: { id: identifier as number } });
+  },
+  update(id: number, data: Record<string, unknown>) {
+    return this.model.update({ where: { id }, data });
+  },
+  list() {
+    return this.model.findMany();
+  },
+});
+
+export const {{camel}}Service = createCrudModule(standard{{pascal}}Service);

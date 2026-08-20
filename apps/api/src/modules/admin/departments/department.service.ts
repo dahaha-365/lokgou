@@ -1,8 +1,9 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "@api/lib/prisma";
 import { autoCodeService } from "../system/autocode/autocode.service";
 import type { DepartmentCreate, DepartmentUpdate, DepartmentQuery } from "@lokgou/schemas";
+import { createCrudService } from "@api/lib/crud-service";
 
-export const departmentService = {
+export const departmentService = createCrudService({
   async create(data: DepartmentCreate) {
     const { code, ...departmentData } = data;
     return prisma.department.create({
@@ -12,14 +13,14 @@ export const departmentService = {
       },
     });
   },
-  findById(id: number) {
+  show(id: number) {
     return prisma.department.findFirst({ where: { id, deletedAt: null } });
   },
   update(id: number, data: DepartmentUpdate) {
     return prisma.department.update({ where: { id }, data });
   },
-  softDelete(id: number) {
-    return prisma.department.update({ where: { id }, data: { deletedAt: new Date() } });
+  delete(id: number) {
+    return prisma.department.delete({ where: { id } });
   },
   async list(params: DepartmentQuery) {
     const { page, pageSize, keyword, parentId, enableState } = params;
@@ -40,4 +41,4 @@ export const departmentService = {
     ]);
     return { items, page, pageSize, total };
   },
-};
+});

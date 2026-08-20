@@ -1,7 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@api/lib/*": ["src/lib/*"],
+      "@api/admin/*": ["src/modules/admin/*"]
+    }
   },
   "include": ["src/**/*.ts", "prisma.config.ts"]
 }

@@ -1,9 +1,9 @@
 import { Elysia } from "elysia";
 import { openapi, type ElysiaOpenAPIConfig } from "@elysia/openapi";
 import { z } from "zod";
-import { getAdminAuthorizationHeader } from "./lib/config";
-import { localizeValidationIssues, requestLocale, t } from "./lib/i18n";
-import { adminController } from "./modules/admin/admin.controller";
+import { exposeErrorDetails, getAdminAuthorizationHeader } from "@api/lib/config";
+import { localizeValidationIssues, requestLocale, t } from "@api/lib/i18n";
+import { adminController } from "@api/admin/admin.controller";
 
 const documentation: NonNullable<ElysiaOpenAPIConfig["documentation"]> & {
   "x-tagGroups": { name: string; tags: string[] }[];
@@ -71,8 +71,9 @@ export const app = new Elysia({ name: "lokgou-api" })
       const locale = requestLocale(request.headers.get("accept-language") ?? undefined);
       set.status = 404;
       return {
-        message: t(locale, "common.notFound"),
         code: "NOT_FOUND",
+        message: t(locale, "common.notFound"),
+        data: null,
       };
     }
   })
@@ -95,14 +96,20 @@ export const app = new Elysia({ name: "lokgou-api" })
       const locale = requestLocale(request.headers.get("accept-language") ?? undefined);
       set.status = 422;
       return {
-        message: t(locale, "common.validationFailed"),
         code: "VALIDATION_ERROR",
-        issues: localizeValidationIssues(error.all, locale),
+        message: t(locale, "common.validationFailed"),
+        data: { issues: localizeValidationIssues(error.all, locale) },
       };
     }
     set.status = 500;
     const locale = requestLocale(request.headers.get("accept-language") ?? undefined);
-    return { message: t(locale, "common.internalServerError"), code: "INTERNAL_SERVER_ERROR" };
+    return {
+      code: "INTERNAL_SERVER_ERROR",
+      message: t(locale, "common.internalServerError"),
+      data: exposeErrorDetails()
+        ? { details: error instanceof Error ? error.message : error }
+        : null,
+    };
   })
   // .get("/", () => ({
   //   name: "lokgou",
@@ -114,7 +121,7 @@ export const app = new Elysia({ name: "lokgou-api" })
 
 if (import.meta.main) {
   app.listen(3000);
-  console.log(`🦊 lokgou API: ${app.server?.url}`);
-  console.log(`📚 Scalar: ${app.server?.url}openapi`);
-  console.log(`📄 OpenAPI: ${app.server?.url}openapi/json`);
+  console.info(`🦊 Lokgou API: ${app.server?.url}`);
+  console.info(`📚 Scalar: ${app.server?.url}openapi`);
+  console.info(`📄 OpenAPI: ${app.server?.url}openapi/json`);
 }

@@ -21,8 +21,8 @@ import {
   RoleUserNotFoundResponseSchema,
   UserRoleResponseSchema,
 } from "@lokgou/schemas";
-import { requestLocale, t } from "../../../lib/i18n";
-import { serializeDates } from "../../../lib/serialize";
+import { requestLocale, t } from "@api/lib/i18n";
+import { serializeDates } from "@api/lib/serialize";
 import { roleService } from "./role.service";
 
 const UserNotFoundResponseSchema = RoleUserNotFoundResponseSchema;
@@ -80,7 +80,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .get(
     "/:id",
     async ({ params, request, status }) => {
-      const item = await roleService.findById(params.id);
+      const item = await roleService.show(params.id);
       return item
         ? RoleResponseSchema.parse(roleView(item))
         : status(404, error(request, "ROLE_NOT_FOUND"));
@@ -94,7 +94,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .patch(
     "/:id",
     async ({ params, body, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       return RoleResponseSchema.parse(
         roleView(await roleService.update(params.id, RoleUpdateSchema.parse(body)))
@@ -110,7 +110,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .delete(
     "/:id",
     async ({ params, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       await roleService.softDelete(params.id);
       return { success: true };
@@ -124,7 +124,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .put(
     "/:id/users/:userId",
     async ({ params, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       if (!(await roleService.findUser(params.userId)))
         return status(404, error(request, "USER_NOT_FOUND"));
@@ -144,7 +144,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .delete(
     "/:id/users/:userId",
     async ({ params, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       if (!(await roleService.findUser(params.userId)))
         return status(404, error(request, "USER_NOT_FOUND"));
@@ -163,7 +163,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .put(
     "/:id/departments/:departmentId",
     async ({ params, body, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       if (!(await roleService.findDepartment(params.departmentId)))
         return status(404, error(request, "DEPARTMENT_NOT_FOUND"));
@@ -190,7 +190,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .delete(
     "/:id/departments/:departmentId",
     async ({ params, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       const item = await roleService.findDepartmentRole(params.id, params.departmentId);
       if (!item) return status(404, error(request, "DEPARTMENT_ROLE_NOT_FOUND"));
@@ -209,7 +209,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .put(
     "/:id/departments/:departmentId/users/:userId",
     async ({ params, body, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       if (!(await roleService.findDepartment(params.departmentId)))
         return status(404, error(request, "DEPARTMENT_NOT_FOUND"));
@@ -242,7 +242,7 @@ export const roleController = new Elysia({ prefix: "/roles" })
   .delete(
     "/:id/departments/:departmentId/users/:userId",
     async ({ params, request, status }) => {
-      if (!(await roleService.findById(params.id)))
+      if (!(await roleService.show(params.id)))
         return status(404, error(request, "ROLE_NOT_FOUND"));
       const departmentRole = await roleService.findDepartmentRole(params.id, params.departmentId);
       if (!departmentRole) return status(404, error(request, "DEPARTMENT_ROLE_NOT_FOUND"));

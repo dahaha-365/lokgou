@@ -5,10 +5,10 @@ import {
   getAdminAppKey,
   getAdminAuthorizationHeader,
   getJwtSecret,
-} from "../../lib/config";
+} from "@api/lib/config";
 import { authService } from "./auth/auth.service";
 import { permissionService } from "./permissions/permission.service";
-import { requestLocale, t } from "../../lib/i18n";
+import { requestLocale, t } from "@api/lib/i18n";
 import { adminRoutes } from "./routes";
 import { recordOperation } from "./system/audit-logs/audit-log.service";
 

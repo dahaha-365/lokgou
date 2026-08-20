@@ -15,6 +15,7 @@
     "db:migrate": "bun --filter @lokgou/api db:migrate",
     "db:studio": "bun --filter @lokgou/api db:studio",
     "db:seed": "bun --filter @lokgou/api db:seed",
+    "test:api:seed": "bun run db:push && bun run db:seed && bun --filter @lokgou/api test src/app.seed-api.test.ts",
     "dev:mcp": "bun --filter @lokgou/dev-mcp dev",
     "mcp": "bun --filter @lokgou/dev-mcp start",
     "mcp:install:opencode": "bun scripts/install-opencode-mcp.ts",

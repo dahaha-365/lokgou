@@ -37,6 +37,13 @@ export const PaginationSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
 
+export const ApiResponseSchema = z.object({
+  code: z.string().describe("响应码"),
+  message: z.string().describe("响应消息"),
+  data: z.unknown().describe("响应数据"),
+});
+
+/** 路由内部仍声明业务 payload；顶层 API 框架会统一包装为 ApiResponse。 */
 export const ErrorResponseSchema = z.object({
   message: z.string().describe("错误信息"),
   code: z.string().optional().describe("错误码"),
@@ -50,3 +57,4 @@ export type Id = z.infer<typeof IdSchema>;
 export type Pagination = z.infer<typeof PaginationSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
+export type ApiResponse = z.infer<typeof ApiResponseSchema>;

@@ -1,7 +1,6 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
-import { createCaslExtension } from "./casl-prisma";
 import { PrismaClient } from "../generated/prisma/client";
 import "./config";
 
@@ -11,8 +10,7 @@ const url =
     ? pathToFileURL(resolve(import.meta.dirname, "../..", databaseUrl.slice(5))).href
     : databaseUrl;
 
-const adapter = new PrismaLibSql({
-  url,
-});
+const adapter = new PrismaLibSql({ url });
 
-export const prisma = new PrismaClient({ adapter }).$extends(createCaslExtension());
+/** 全局只创建一个 PrismaClient，扩展由各 service 按需加载。 */
+export const prisma = new PrismaClient({ adapter });

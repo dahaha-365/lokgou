@@ -1,0 +1,4 @@
+import { Elysia } from "elysia";
+import { {{camel}}Service } from "./{{name}}.service";
+
+export const {{camel}}Controller = new Elysia({ prefix: "/{{name}}" }).get("/", () => {{camel}}Service.list());

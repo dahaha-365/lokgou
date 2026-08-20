@@ -1,0 +1,4 @@
+import { Elysia } from "elysia";
+import { {{camel}}Routes } from "./routes";
+
+export const {{camel}}Controller = new Elysia({ prefix: "/{{name}}" }).use({{camel}}Routes);

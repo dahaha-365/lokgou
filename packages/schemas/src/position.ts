@@ -2,7 +2,7 @@ import { z } from "zod";
 import { EnableStateSchema } from "./common";
 
 export const PositionCreateSchema = z.object({
-  code: z.string().min(1).max(50),
+  code: z.string().optional(),
   name: z.string().min(1).max(100),
   description: z.string().max(500).nullable().optional(),
   enableState: EnableStateSchema.default(0),

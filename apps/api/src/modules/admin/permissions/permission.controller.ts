@@ -19,7 +19,7 @@ import {
   UserRolePermissionParamsSchema,
   UserRolePermissionResponseSchema,
 } from "@lokgou/schemas";
-import { serializeDates, serializeDatesArray } from "../../../lib/serialize";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
 import { permissionService } from "./permission.service";
 
 const permissionNotFound = {
@@ -32,7 +32,7 @@ const assignmentOwnerNotFound = {
 } as const;
 
 async function requirePermission(permissionId: number) {
-  return Boolean(await permissionService.findById(permissionId));
+  return Boolean(await permissionService.show(permissionId));
 }
 
 async function requireAssignmentOwner(
@@ -240,7 +240,7 @@ export const permissionController = new Elysia({ prefix: "/permissions" })
   .get(
     "/:id",
     async ({ params, status }) => {
-      const permission = await permissionService.findById(params.id);
+      const permission = await permissionService.show(params.id);
       return permission
         ? PermissionResponseSchema.parse(serializeDates(permission))
         : status(404, permissionNotFound);

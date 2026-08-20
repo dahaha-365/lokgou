@@ -9,8 +9,8 @@ import {
   SuccessResponseSchema,
 } from "@lokgou/schemas";
 import { departmentLeaderService } from "./department-leader.service";
-import { requestLocale, t } from "../../../../lib/i18n";
-import { serializeDates, serializeDatesArray } from "../../../../lib/serialize";
+import { requestLocale, t } from "@api/lib/i18n";
+import { serializeDates, serializeDatesArray } from "@api/lib/serialize";
 
 export const departmentLeaderController = new Elysia({ prefix: "/leader" })
   .post(
@@ -44,7 +44,7 @@ export const departmentLeaderController = new Elysia({ prefix: "/leader" })
   .get(
     "/:id",
     async ({ params, request, status }) => {
-      const item = await departmentLeaderService.findById(params.id);
+      const item = await departmentLeaderService.show(params.id);
       if (!item)
         return status(404, {
           message: t(
