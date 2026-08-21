@@ -4,6 +4,7 @@ import { z } from "zod";
 import { loadConfig, resolveModel, type ModelRole } from "./models/config";
 import { complete } from "./models/client";
 import { buildModelContext, defaultContextLevel, type ContextLevel } from "./context";
+import { searchLocal } from "./indexer/search";
 import { projectContext } from "./project";
 import { routeTask, type CompletedTaskPhase } from "./router";
 import { promptForPhase } from "./rules/template-engine";
@@ -65,7 +66,11 @@ server.registerTool(
     const config = await loadConfig();
     const selectedRole: ModelRole = role ?? plan.recommendedRole;
     const selectedContextLevel: ContextLevel = contextLevel ?? defaultContextLevel(plan.phase);
-    const context = JSON.stringify(buildModelContext(plan, selectedContextLevel, paths), null, 2);
+    const context = JSON.stringify(
+      await buildModelContext(plan, selectedContextLevel, paths),
+      null,
+      2
+    );
     const reassessment =
       plan.phase === "reassessment"
         ? { completedPhase: completedPhase as CompletedTaskPhase, outcome: outcome as string }
@@ -78,6 +83,19 @@ server.registerTool(
     );
     return result({ role: selectedRole, plan, contextLevel: selectedContextLevel, completion });
   }
+);
+
+server.registerTool(
+  "search_context",
+  {
+    description: "使用本地 ripgrep 在指定模块或路径中检索代码和文档片段。",
+    inputSchema: {
+      query: z.string().min(1),
+      paths: z.array(z.string()).optional(),
+      limit: z.number().int().positive().max(100).optional(),
+    },
+  },
+  async ({ query, paths, limit }) => result(await searchLocal(query, paths, limit))
 );
 
 await server.connect(new StdioServerTransport());

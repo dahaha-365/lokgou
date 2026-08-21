@@ -169,3 +169,52 @@ seedTest(
   },
   30_000
 );
+
+seedTest("generates AutoCode fields for create APIs", async () => {
+  const [{ app }, { seedFixtures }] = await Promise.all([
+    import("./app"),
+    import("./test/fixtures"),
+  ]);
+  const headers = {
+    "admin-app-key": process.env.ADMIN_APP_KEY!,
+    "content-type": "application/json",
+  };
+  const loginResponse = await app.handle(
+    new Request("http://localhost/admin/auth/login", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(seedFixtures.admin),
+    })
+  );
+  const login = (await loginResponse.json()) as { accessToken: string };
+  const authHeaders = { ...headers, "admin-authorization": login.accessToken };
+
+  const create = async (path: string, body: unknown) => {
+    const response = await app.handle(
+      new Request(`http://localhost${path}`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify(body),
+      })
+    );
+    expect(response.status).toBe(200);
+    return (await response.json()) as Record<string, unknown>;
+  };
+
+  const department = await create("/admin/departments", { name: "AutoCode 冒烟部门" });
+  expect(department.code).toMatch(/^DEP/);
+  const position = await create("/admin/hr/positions", {
+    name: "AutoCode 冒烟职位",
+    enableState: 0,
+  });
+  expect(position.code).toMatch(/^POS/);
+  const role = await create("/admin/roles", { name: "AutoCode 冒烟角色", permissions: [] });
+  expect(role.code).toMatch(/^ROL/);
+  const user = await create("/admin/users", {
+    password: "demo123456",
+    name: "AutoCode 冒烟用户",
+    enableState: 0,
+    isAdmin: false,
+  });
+  expect(user.username).toMatch(/^USR/);
+});

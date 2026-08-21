@@ -126,6 +126,37 @@ bun run mcp:install:opencode
 
 ## 阶段与调度策略
 
+## 本地检索与上下文压缩
+
+dev-mcp 第一版提供本地代码检索，不使用向量数据库，也不会把代码上传到外部检索服务。
+检索使用 `@vscode/ripgrep` 提供的可执行文件，按任务关键词和指定路径搜索；命中文件会
+按行分块，只把相关块加入 `delegate_task` 的上下文。
+
+可以直接调用：
+
+```json
+{
+  "task": "优化职位删除逻辑",
+  "paths": ["apps/api/src/modules/admin/hr/positions"]
+}
+```
+
+也可以使用 MCP 工具 `search_context` 单独检索：
+
+```json
+{
+  "query": "position delete deletedAt",
+  "paths": ["apps/api/src/modules/admin/hr/positions"],
+  "limit": 20
+}
+```
+
+检索结果包括命中文件、行号、相关性、代码块和估算 token 数。默认忽略
+`node_modules`、`.git`、`.ai/cache` 和生成代码。显式传入的路径优先于任务自动推断的模块。
+
+当前版本使用轻量行分块缓存结构，后续可继续加入持久化文件缓存和模块依赖闭包；它不替代
+TypeScript 类型检查、Prisma schema 检查或测试。
+
 `route_task` 是零 LLM 的规则路由：它只根据任务、路径和阶段给出推荐，不会调用模型。`route_task` 和 `delegate_task` 都接受可选的 `phase`；未传时默认为 `implementation`，并路由到 `code-gen` 与 `smallModel`。这是低成本优先策略，避免因任务包含 `Prisma`、`权限`、`路由` 等高风险关键词而隐式使用大模型。
 
 大模型只保留给两种明确选择：调用方显式请求且阶段为 `planning`（默认路由至 `orchestrator`），或调用方显式传入 `role` 覆盖推荐角色。高风险关键词本身不构成大模型升级条件。

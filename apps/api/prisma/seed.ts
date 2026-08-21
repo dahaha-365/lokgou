@@ -98,6 +98,20 @@ async function main() {
         counterLength: 8,
         remark: "附件业务编号",
       },
+      {
+        key: "POSITION_CODE",
+        prefix: "POS",
+        middleTemplate: "",
+        counterLength: 6,
+        remark: "职位编码自动编号",
+      },
+      {
+        key: "ROLE_CODE",
+        prefix: "ROL",
+        middleTemplate: "",
+        counterLength: 6,
+        remark: "角色编码自动编号",
+      },
     ],
   });
 

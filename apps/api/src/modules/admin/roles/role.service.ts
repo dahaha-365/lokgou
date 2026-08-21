@@ -7,12 +7,17 @@ import type {
   UserDepartmentRoleAssign,
 } from "@lokgou/schemas";
 import { createCrudModule, createCrudService } from "@api/lib/crud-service";
+import { autoCodeService } from "../system/autocode/autocode.service";
 
 export const roleService = createCrudModule(
   createCrudService({
-    create(data: RoleCreate) {
+    async create(data: RoleCreate) {
       return prisma.role.create({
-        data: { ...data, permissions: JSON.stringify(data.permissions) },
+        data: {
+          ...data,
+          code: data.code ?? (await autoCodeService.generate("ROLE_CODE")),
+          permissions: JSON.stringify(data.permissions),
+        },
       });
     },
     show(id: number) {

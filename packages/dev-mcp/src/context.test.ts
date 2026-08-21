@@ -25,8 +25,8 @@ describe("defaultContextLevel", () => {
 });
 
 describe("buildModelContext", () => {
-  test("builds minimal context from the route plan and deduplicated supplied paths", () => {
-    const context = buildModelContext(apiPlan, "minimal", [
+  test("builds minimal context from the route plan and deduplicated supplied paths", async () => {
+    const context = await buildModelContext(apiPlan, "minimal", [
       "apps/api/src/modules/admin/routes.ts",
       "apps/api/src/modules/admin/routes.ts",
       "packages/schemas/src",
@@ -46,12 +46,14 @@ describe("buildModelContext", () => {
     expect(context).not.toHaveProperty("project.rules");
   });
 
-  test("builds standard context with only relevant project modules and rules", () => {
+  test("builds standard context with only relevant project modules and rules", async () => {
     const autoCodePlan: RoutePlan = {
       ...apiPlan,
       officialContext: [...apiPlan.officialContext, "AutoCode"],
     };
-    const context = buildModelContext(autoCodePlan, "standard", ["packages/schemas/src/role.ts"]);
+    const context = await buildModelContext(autoCodePlan, "standard", [
+      "packages/schemas/src/role.ts",
+    ]);
 
     expect(context).toMatchObject({
       plan: {
@@ -77,8 +79,10 @@ describe("buildModelContext", () => {
     expect(context).not.toMatchObject({ project: { modules: [{ path: "docs" }] } });
   });
 
-  test("builds full context with every project module and rule", () => {
-    const context = buildModelContext(apiPlan, "full", ["apps/api/src/modules/admin/routes.ts"]);
+  test("builds full context with every project module and rule", async () => {
+    const context = await buildModelContext(apiPlan, "full", [
+      "apps/api/src/modules/admin/routes.ts",
+    ]);
 
     expect(context).toMatchObject({
       plan: {

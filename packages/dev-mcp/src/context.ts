@@ -1,5 +1,6 @@
 import { projectContext } from "./project";
 import type { RoutePlan, TaskPhase } from "./router";
+import { searchLocal } from "./indexer/search";
 
 export type ContextLevel = "minimal" | "standard" | "full";
 
@@ -15,11 +16,11 @@ function unique(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))];
 }
 
-export function buildModelContext(
+export async function buildModelContext(
   plan: RoutePlan,
   level: ContextLevel,
   paths: string[] = []
-): Record<string, unknown> {
+): Promise<Record<string, unknown>> {
   const suppliedPaths = unique(paths);
   const planContext = {
     intent: plan.intent,
@@ -28,10 +29,14 @@ export function buildModelContext(
     officialContext: plan.officialContext,
     ...(suppliedPaths.length ? { paths: suppliedPaths } : {}),
   };
-  if (level === "minimal") return { plan: planContext };
+  const retrieval = await searchLocal(
+    planContext.intent,
+    suppliedPaths.length ? suppliedPaths : plan.modules
+  );
+  if (level === "minimal") return { plan: planContext, retrieval };
 
   const project = projectContext();
-  if (level === "full") return { plan: planContext, project };
+  if (level === "full") return { plan: planContext, project, retrieval };
 
   const relevantPaths = [...plan.modules, ...suppliedPaths];
   const modules = project.modules.filter((module) =>
@@ -43,5 +48,5 @@ export function buildModelContext(
       (plan.officialContext.includes("AutoCode") && rule.includes("AutoCode")) ||
       (plan.intent === "api" && rule.includes("locale"))
   );
-  return { plan: planContext, project: { modules, rules } };
+  return { plan: planContext, project: { modules, rules }, retrieval };
 }

@@ -8,7 +8,7 @@ export const PermissionsSchema = z.array(PermissionSchema).superRefine((values, 
 });
 
 export const RoleCreateSchema = z.object({
-  code: z.string().trim().min(1).max(50),
+  code: z.string().trim().min(1).max(50).optional(),
   name: z.string().trim().min(1).max(100),
   description: z.string().trim().max(500).nullable().optional(),
   permissions: PermissionsSchema.default([]),

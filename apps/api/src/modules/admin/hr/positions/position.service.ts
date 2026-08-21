@@ -2,6 +2,7 @@ import { prisma } from "@api/lib/prisma";
 import { softDeleteExtension } from "@api/lib/prisma/extends/soft-delete";
 import type { PositionCreate, PositionUpdate, PositionQuery } from "@lokgou/schemas";
 import { createCrudModule, createCrudServiceFromModel } from "@api/lib/crud-service";
+import { autoCodeService } from "../../system/autocode/autocode.service";
 
 const positionPrisma = prisma.$extends(softDeleteExtension);
 
@@ -41,8 +42,10 @@ const standardPositionService = createCrudServiceFromModel<
   PositionListResult
 >({
   model: positionPrisma.position,
-  create(data) {
-    return this.model.create({ data });
+  async create(data) {
+    return this.model.create({
+      data: { ...data, code: data.code ?? (await autoCodeService.generate("POSITION_CODE")) },
+    });
   },
   show(id) {
     return this.model.findFirst({ where: { id: id as number } });
