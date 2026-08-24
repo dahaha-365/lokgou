@@ -187,7 +187,12 @@ seedTest("generates AutoCode fields for create APIs", async () => {
     })
   );
   const login = (await loginResponse.json()) as { accessToken: string };
-  const authHeaders = { ...headers, "admin-authorization": login.accessToken };
+  expect(login.accessToken).toBeString();
+  const authHeaders = {
+    "admin-app-key": process.env.ADMIN_APP_KEY!,
+    "admin-authorization": login.accessToken,
+    "content-type": "application/json",
+  };
 
   const create = async (path: string, body: unknown) => {
     const response = await app.handle(
