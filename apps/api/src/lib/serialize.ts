@@ -7,7 +7,17 @@ export function serializeDates<T extends Record<string, unknown>>(value: T): Ser
   return Object.fromEntries(
     Object.entries(value).map(([key, item]) => [
       key,
-      item instanceof Date ? item.toISOString() : item,
+      item instanceof Date
+        ? item.toISOString()
+        : Array.isArray(item)
+          ? item.map((child) =>
+              child && typeof child === "object"
+                ? serializeDates(child as Record<string, unknown>)
+                : child
+            )
+          : item && typeof item === "object"
+            ? serializeDates(item as Record<string, unknown>)
+            : item,
     ])
   ) as SerializedDates<T>;
 }

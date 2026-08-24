@@ -3,6 +3,8 @@ import {
   DepartmentCreateSchema,
   DepartmentUpdateSchema,
   DepartmentQuerySchema,
+  DepartmentTreeQuerySchema,
+  DepartmentTreeResponseSchema,
   DepartmentIdSchema,
   DepartmentResponseSchema,
   DepartmentNotFoundResponseSchema,
@@ -56,6 +58,23 @@ export const departmentController = new Elysia()
       query: DepartmentQuerySchema,
       response: DepartmentListResponseSchema,
       detail: { tags: ["Departments"], summary: "部门列表" },
+    }
+  )
+  .get(
+    "/tree",
+    async ({ query }) =>
+      DepartmentTreeResponseSchema.parse(
+        serializeDatesArray(
+          (await departmentService.tree(DepartmentTreeQuerySchema.parse(query).rootId)) as Record<
+            string,
+            unknown
+          >[]
+        )
+      ),
+    {
+      query: DepartmentTreeQuerySchema,
+      response: { 200: DepartmentTreeResponseSchema },
+      detail: { tags: ["Departments"], summary: "部门树" },
     }
   )
   .get(

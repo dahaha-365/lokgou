@@ -34,6 +34,9 @@ export const MenuQuerySchema = PaginationSchema.extend({
   parentId: PositiveIntegerSchema.optional(),
   enableState: z.coerce.number().int().optional(),
 });
+export const MenuTreeQuerySchema = z.object({
+  rootId: PositiveIntegerSchema.nullable().optional(),
+});
 
 export const MenuResponseSchema = z.object({
   id: z.number().int().positive(),
@@ -59,6 +62,10 @@ export const MenuListResponseSchema = z.object({
   pageSize: z.number().int(),
   total: z.number().int(),
 });
+export const MenuTreeNodeSchema: z.ZodType<
+  z.infer<typeof MenuResponseSchema> & { children: unknown[] }
+> = MenuResponseSchema.extend({ children: z.lazy(() => z.array(MenuTreeNodeSchema)) });
+export const MenuTreeResponseSchema = z.array(MenuTreeNodeSchema);
 export const MenuNotFoundResponseSchema = z.object({
   message: z.string(),
   code: z.literal("MENU_NOT_FOUND"),

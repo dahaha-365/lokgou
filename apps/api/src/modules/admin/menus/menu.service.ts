@@ -13,6 +13,7 @@ const menuOrder: Prisma.MenuOrderByWithRelationInput[] = [
   { sortOrder: "asc" },
   { id: "asc" },
 ];
+type TreeDelegate = { tree: (options?: object) => Promise<unknown[]> };
 
 export const menuService = createCrudModule(
   createCrudService({
@@ -98,6 +99,13 @@ export const menuService = createCrudModule(
         prisma.menu.count({ where }),
       ]);
       return { items, page, pageSize, total };
+    },
+    async tree(rootId?: number | null) {
+      return (prisma.menu as unknown as TreeDelegate).tree({
+        rootId,
+        where: { deletedAt: null },
+        orderBy: menuOrder,
+      });
     },
     async effectiveForUser(userId: number, { group, keyword }: MenuEffectiveQuery) {
       const permissionCodes = (await permissionService.effectivePermissions(userId))

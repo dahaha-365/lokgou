@@ -18,6 +18,9 @@ export const DepartmentQuerySchema = z.object({
   parentId: z.coerce.number().int().positive().optional(),
   enableState: z.coerce.number().int().optional(),
 });
+export const DepartmentTreeQuerySchema = z.object({
+  rootId: z.coerce.number().int().positive().nullable().optional(),
+});
 
 export const DepartmentResponseSchema = z.object({
   id: z.number().int().positive(),
@@ -41,6 +44,10 @@ export const DepartmentListResponseSchema = z.object({
   pageSize: z.number().int(),
   total: z.number().int(),
 });
+export const DepartmentTreeNodeSchema: z.ZodType<
+  z.infer<typeof DepartmentResponseSchema> & { children: unknown[] }
+> = DepartmentResponseSchema.extend({ children: z.lazy(() => z.array(DepartmentTreeNodeSchema)) });
+export const DepartmentTreeResponseSchema = z.array(DepartmentTreeNodeSchema);
 
 export type DepartmentCreate = z.infer<typeof DepartmentCreateSchema>;
 export type DepartmentUpdate = z.infer<typeof DepartmentUpdateSchema>;

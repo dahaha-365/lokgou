@@ -10,6 +10,8 @@ import {
   MenuParentNotFoundResponseSchema,
   MenuPermissionNotFoundResponseSchema,
   MenuQuerySchema,
+  MenuTreeQuerySchema,
+  MenuTreeResponseSchema,
   MenuResponseSchema,
   MenuUpdateSchema,
   MenuUserParamsSchema,
@@ -83,6 +85,23 @@ export const menuController = new Elysia({ prefix: "/menus" })
       query: MenuQuerySchema,
       response: { 200: MenuListResponseSchema },
       detail: { tags: ["Menus"], summary: "菜单列表" },
+    }
+  )
+  .get(
+    "/tree",
+    async ({ query }) =>
+      MenuTreeResponseSchema.parse(
+        serializeDatesArray(
+          (await menuService.tree(MenuTreeQuerySchema.parse(query).rootId)) as Record<
+            string,
+            unknown
+          >[]
+        )
+      ),
+    {
+      query: MenuTreeQuerySchema,
+      response: { 200: MenuTreeResponseSchema },
+      detail: { tags: ["Menus"], summary: "菜单树" },
     }
   )
   .get(

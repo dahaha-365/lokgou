@@ -31,6 +31,10 @@ modules/
 
 新增 admin 资源应放入 `modules/admin/<resource>/`，并通过脚手架或 `admin/routes.ts` 注册。
 
+具有 `parentId` 层级的资源可提供 `/tree` 查询。树扩展支持 `rootId`（缺省或
+`null` 返回顶层根；指定值返回该节点及其后代），并通过复制记录添加 `children`，不会修改
+Prisma 返回对象；检测到循环时会停止继续展开该分支。
+
 ## OpenAPI
 
 子模块 controller 应声明自己的资源 tag，例如 `Users`、`Departments`。**新增、重命名或删除资源 tag 时，必须在同一变更中更新 `apps/api/src/app.ts` 的 `documentation.tags` 和 Admin `x-tagGroups`**，否则接口虽会出现在原始 OpenAPI 规范中，却不会获得正确的 Scalar 描述和分组。

@@ -3,6 +3,8 @@ import { autoCodeService } from "../system/autocode/autocode.service";
 import type { DepartmentCreate, DepartmentUpdate, DepartmentQuery } from "@lokgou/schemas";
 import { createCrudService } from "@api/lib/crud-service";
 
+type TreeDelegate = { tree: (options?: object) => Promise<unknown[]> };
+
 export const departmentService = createCrudService({
   async create(data: DepartmentCreate) {
     const { code, ...departmentData } = data;
@@ -40,5 +42,12 @@ export const departmentService = createCrudService({
       prisma.department.count({ where }),
     ]);
     return { items, page, pageSize, total };
+  },
+  async tree(rootId?: number | null) {
+    return (prisma.department as unknown as TreeDelegate).tree({
+      rootId,
+      where: { deletedAt: null },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
   },
 });
