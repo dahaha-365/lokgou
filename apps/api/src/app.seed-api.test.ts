@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 
-const seedTest = process.env.CI_API_SEED_TEST === "true" ? test : test.skip;
+const seedTest = process.env.CI_API_SEED_TEST === "true" ? test.serial : test.skip;
 
 seedTest(
   "exercises seeded admin GET endpoints",
