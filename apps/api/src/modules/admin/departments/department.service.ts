@@ -1,13 +1,18 @@
-import { prisma } from "@api/lib/prisma";
-import { autoCodeService } from "../system/autocode/autocode.service";
-import type { DepartmentCreate, DepartmentUpdate, DepartmentQuery } from "@lokgou/schemas";
-import { createCrudService } from "@api/lib/crud-service";
+import {prisma} from "@api/lib/prisma";
+import {treeModelExtension} from '@api/lib/prisma/extends/tree-model'
+import {softDeleteExtension} from '@api/lib/prisma/extends/soft-delete'
+import {autoCodeService} from "../system/autocode/autocode.service";
+import type {DepartmentCreate, DepartmentUpdate, DepartmentQuery} from "@lokgou/schemas";
+import {createCrudService} from "@api/lib/crud-service";
 
 type TreeDelegate = { tree: (options?: object) => Promise<unknown[]> };
 
+// CONTEXT: 按需加载扩展
+prisma.$extends(treeModelExtension).$extends(softDeleteExtension);
+
 export const departmentService = createCrudService({
   async create(data: DepartmentCreate) {
-    const { code, ...departmentData } = data;
+    const {code, ...departmentData} = data;
     return prisma.department.create({
       data: {
         ...departmentData,
@@ -16,38 +21,38 @@ export const departmentService = createCrudService({
     });
   },
   show(id: number) {
-    return prisma.department.findFirst({ where: { id, deletedAt: null } });
+    return prisma.department.findFirst({where: {id, deletedAt: null}});
   },
   update(id: number, data: DepartmentUpdate) {
-    return prisma.department.update({ where: { id }, data });
+    return prisma.department.update({where: {id}, data});
   },
   delete(id: number) {
-    return prisma.department.delete({ where: { id } });
+    return prisma.department.delete({where: {id}});
   },
   async list(params: DepartmentQuery) {
-    const { page, pageSize, keyword, parentId, enableState } = params;
+    const {page, pageSize, keyword, parentId, enableState} = params;
     const where = {
       deletedAt: null,
-      ...(keyword ? { name: { contains: keyword } } : {}),
-      ...(parentId !== undefined ? { parentId } : {}),
-      ...(enableState !== undefined ? { enableState } : {}),
+      ...(keyword ? {name: {contains: keyword}} : {}),
+      ...(parentId !== undefined ? {parentId} : {}),
+      ...(enableState !== undefined ? {enableState} : {}),
     };
     const [items, total] = await prisma.$transaction([
       prisma.department.findMany({
         where,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        orderBy: { createdAt: "desc" },
+        orderBy: {createdAt: "desc"},
       }),
-      prisma.department.count({ where }),
+      prisma.department.count({where}),
     ]);
-    return { items, page, pageSize, total };
+    return {items, page, pageSize, total};
   },
   async tree(rootId?: number | null) {
     return (prisma.department as unknown as TreeDelegate).tree({
       rootId,
-      where: { deletedAt: null },
-      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      where: {deletedAt: null},
+      orderBy: [{createdAt: "asc"}, {id: "asc"}],
     });
   },
 });

@@ -1,3 +1,5 @@
+import {softDeleteExtension} from '@api/lib/prisma/extends/soft-delete'
+import {treeModelExtension} from '@api/lib/prisma/extends/tree-model'
 import type { MenuCreate, MenuEffectiveQuery, MenuQuery, MenuUpdate } from "@lokgou/schemas";
 import type { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "@api/lib/prisma";
@@ -14,6 +16,8 @@ const menuOrder: Prisma.MenuOrderByWithRelationInput[] = [
   { id: "asc" },
 ];
 type TreeDelegate = { tree: (options?: object) => Promise<unknown[]> };
+
+prisma.$extends(treeModelExtension).$extends(softDeleteExtension);
 
 export const menuService = createCrudModule(
   createCrudService({

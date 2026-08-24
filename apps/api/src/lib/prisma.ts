@@ -13,5 +13,5 @@ const url =
 
 const adapter = new PrismaLibSql({ url });
 
-/** 全局只创建一个 PrismaClient，扩展由各 service 按需加载。 */
-export const prisma = new PrismaClient({ adapter }).$extends(treeModelExtension);
+/** IMPORTANT: 全局只创建一个 PrismaClient，扩展由各 service 按需加载。 */
+export const prisma = new PrismaClient({ adapter });
