@@ -19,7 +19,9 @@ function allowed(path: string, paths: string[]) {
 export async function searchLocal(
   query: string,
   paths: string[] = [],
-  limit = 20
+  limit = 20,
+  maxTokens = 6000,
+  maxChunks = 12
 ): Promise<SearchResult> {
   const terms = termsOf(query);
   const args = ["--json", "--line-number", "--no-heading", "--hidden", terms.join("|"), "."];
@@ -60,11 +62,17 @@ export async function searchLocal(
       )
     );
   }
-  const chunks = [...grouped.values()].flat();
+  const chunks: FileChunk[] = [];
+  let estimatedTokens = 0;
+  for (const chunk of [...grouped.values()].flat()) {
+    if (chunks.length >= maxChunks || estimatedTokens + chunk.estimatedTokens > maxTokens) break;
+    chunks.push(chunk);
+    estimatedTokens += chunk.estimatedTokens;
+  }
   return {
     hits: selected,
     chunks,
-    estimatedTokens: chunks.reduce((sum, chunk) => sum + chunk.estimatedTokens, 0),
-    truncated: hits.length > selected.length,
+    estimatedTokens,
+    truncated: hits.length > selected.length || chunks.length < [...grouped.values()].flat().length,
   };
 }

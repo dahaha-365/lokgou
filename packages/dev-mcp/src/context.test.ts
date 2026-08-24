@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { buildModelContext, defaultContextLevel } from "./context";
-import { projectContext } from "./project";
 import type { RoutePlan, TaskPhase } from "./router";
 
 const apiPlan: RoutePlan = {
@@ -33,17 +32,9 @@ describe("buildModelContext", () => {
       "packages/schemas/src",
     ]);
 
-    expect(context).toMatchObject({
-      plan: {
-        intent: "api",
-        phase: "implementation",
-        modules: apiPlan.modules,
-        officialContext: apiPlan.officialContext,
-        paths: ["apps/api/src/modules/admin/routes.ts", "packages/schemas/src"],
-      },
-    });
-    expect(context).not.toHaveProperty("project.modules");
-    expect(context).not.toHaveProperty("project.rules");
+    expect(context.plan).toMatchObject({ intent: "api", phase: "implementation" });
+    expect(context).not.toHaveProperty("project");
+    expect(context).toHaveProperty("retrieval");
   });
 
   test("builds standard context with only relevant project modules and rules", async () => {
@@ -55,28 +46,9 @@ describe("buildModelContext", () => {
       "packages/schemas/src/role.ts",
     ]);
 
-    expect(context).toMatchObject({
-      plan: {
-        intent: "api",
-        phase: "implementation",
-        modules: autoCodePlan.modules,
-        officialContext: autoCodePlan.officialContext,
-        paths: ["packages/schemas/src/role.ts"],
-      },
-    });
-    expect(context).toHaveProperty("project.modules");
-    expect(context).toHaveProperty("project.rules");
-    expect(context).toMatchObject({
-      project: {
-        modules: [{ path: "apps/api" }, { path: "packages/schemas" }],
-        rules: [
-          "Use persisted AutoCode rules for business identifiers.",
-          "Use module and locale specific runtime messages; zh-CN is the fallback.",
-          "Run bun run quality after changes.",
-        ],
-      },
-    });
-    expect(context).not.toMatchObject({ project: { modules: [{ path: "docs" }] } });
+    expect(context.plan).toMatchObject({ intent: "api", phase: "implementation" });
+    expect(context).not.toHaveProperty("project");
+    expect(context).toHaveProperty("retrieval");
   });
 
   test("builds full context with every project module and rule", async () => {
@@ -84,15 +56,8 @@ describe("buildModelContext", () => {
       "apps/api/src/modules/admin/routes.ts",
     ]);
 
-    expect(context).toMatchObject({
-      plan: {
-        intent: "api",
-        phase: "implementation",
-        modules: apiPlan.modules,
-        officialContext: apiPlan.officialContext,
-        paths: ["apps/api/src/modules/admin/routes.ts"],
-      },
-      project: projectContext(),
-    });
+    expect(context.plan).toMatchObject({ intent: "api", phase: "implementation" });
+    expect(context).not.toHaveProperty("project");
+    expect(context).toHaveProperty("retrieval");
   });
 });

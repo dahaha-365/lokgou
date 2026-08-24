@@ -67,7 +67,7 @@ server.registerTool(
     const selectedRole: ModelRole = role ?? plan.recommendedRole;
     const selectedContextLevel: ContextLevel = contextLevel ?? defaultContextLevel(plan.phase);
     const context = JSON.stringify(
-      await buildModelContext(plan, selectedContextLevel, paths),
+      await buildModelContext(plan, selectedContextLevel, paths, task),
       null,
       2
     );
@@ -93,9 +93,11 @@ server.registerTool(
       query: z.string().min(1),
       paths: z.array(z.string()).optional(),
       limit: z.number().int().positive().max(100).optional(),
+      maxTokens: z.number().int().positive().max(20000).optional(),
     },
   },
-  async ({ query, paths, limit }) => result(await searchLocal(query, paths, limit))
+  async ({ query, paths, limit, maxTokens }) =>
+    result(await searchLocal(query, paths, limit, maxTokens))
 );
 
 await server.connect(new StdioServerTransport());
