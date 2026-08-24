@@ -142,6 +142,44 @@ seedTest(
       "/admin/system/audit-logs/{resource}/{recordId}"
     );
 
+    // Run AutoCode creation checks before the exhaustive operation sweep. The
+    // sweep intentionally revokes/changes sessions and must be the final step.
+    const createHeaders = {
+      "admin-app-key": process.env.ADMIN_APP_KEY!,
+      "admin-authorization": login.accessToken,
+      "content-type": "application/json",
+    };
+    const create = async (path: string, body: unknown) => {
+      const response = await app.handle(
+        new Request(`http://localhost${path}`, {
+          method: "POST",
+          headers: createHeaders,
+          body: JSON.stringify(body),
+        })
+      );
+      expect(response.status).toBe(200);
+      return (await response.json()) as Record<string, unknown>;
+    };
+    expect((await create("/admin/departments", { name: "AutoCode 冒烟部门" })).code).toMatch(
+      /^DEP/
+    );
+    expect(
+      (await create("/admin/hr/positions", { name: "AutoCode 冒烟职位", enableState: 0 })).code
+    ).toMatch(/^POS/);
+    expect(
+      (await create("/admin/roles", { name: "AutoCode 冒烟角色", permissions: [] })).code
+    ).toMatch(/^ROL/);
+    expect(
+      (
+        await create("/admin/users", {
+          password: "demo123456",
+          name: "AutoCode 冒烟用户",
+          enableState: 0,
+          isAdmin: false,
+        })
+      ).username
+    ).toMatch(/^USR/);
+
     const methods = ["get", "post", "put", "patch", "delete"] as const;
     const parameterPath = (path: string) => path.replace(/\{[^}]+\}/g, "1");
     for (const [path, pathItem] of Object.entries(openapi.paths)) {
@@ -169,57 +207,3 @@ seedTest(
   },
   30_000
 );
-
-seedTest("generates AutoCode fields for create APIs", async () => {
-  const [{ app }, { seedFixtures }] = await Promise.all([
-    import("./app"),
-    import("./test/fixtures"),
-  ]);
-  const headers = {
-    "admin-app-key": process.env.ADMIN_APP_KEY!,
-    "content-type": "application/json",
-  };
-  const loginResponse = await app.handle(
-    new Request("http://localhost/admin/auth/login", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(seedFixtures.admin),
-    })
-  );
-  const login = (await loginResponse.json()) as { accessToken: string };
-  expect(login.accessToken).toBeString();
-  const authHeaders = {
-    "admin-app-key": process.env.ADMIN_APP_KEY!,
-    "admin-authorization": login.accessToken,
-    "content-type": "application/json",
-  };
-
-  const create = async (path: string, body: unknown) => {
-    const response = await app.handle(
-      new Request(`http://localhost${path}`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify(body),
-      })
-    );
-    expect(response.status).toBe(200);
-    return (await response.json()) as Record<string, unknown>;
-  };
-
-  const department = await create("/admin/departments", { name: "AutoCode 冒烟部门" });
-  expect(department.code).toMatch(/^DEP/);
-  const position = await create("/admin/hr/positions", {
-    name: "AutoCode 冒烟职位",
-    enableState: 0,
-  });
-  expect(position.code).toMatch(/^POS/);
-  const role = await create("/admin/roles", { name: "AutoCode 冒烟角色", permissions: [] });
-  expect(role.code).toMatch(/^ROL/);
-  const user = await create("/admin/users", {
-    password: "demo123456",
-    name: "AutoCode 冒烟用户",
-    enableState: 0,
-    isAdmin: false,
-  });
-  expect(user.username).toMatch(/^USR/);
-});

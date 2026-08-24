@@ -38,7 +38,8 @@ GitHub Actions 会先使用 Prisma `db:push --force-reset` 完全重建独立 SQ
 bun run test:api:seed
 ```
 
-也可以手动执行。脚本会自动使用 `--force-reset` 重建数据库；需要使用独立数据库并显式启用测试：
+也可以手动执行。脚本会自动使用 `--force-reset` 重建数据库，并按串行顺序运行登录、
+只读接口、AutoCode 创建检查和最后的 OpenAPI 全量探测；需要使用独立数据库并显式启用测试：
 
 ```bash
 DATABASE_URL="file:./prisma/ci-api-smoke.db" bun run db:push
