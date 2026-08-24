@@ -8,6 +8,7 @@ import { searchLocal } from "./indexer/search";
 import { projectContext } from "./project";
 import { routeTask, type CompletedTaskPhase } from "./router";
 import { promptForPhase } from "./rules/template-engine";
+import { INLINE_MARKERS, scanInlineMarkers } from "./inline-markers";
 
 const server = new McpServer({ name: "lokgou-dev-mcp", version: "1.0.0" });
 const taskPhaseSchema = z.enum(["planning", "implementation", "validation", "reassessment"]);
@@ -98,6 +99,19 @@ server.registerTool(
   },
   async ({ query, paths, limit, maxTokens }) =>
     result(await searchLocal(query, paths, limit, maxTokens))
+);
+
+server.registerTool(
+  "scan_inline_markers",
+  {
+    description: "扫描源码注释中的 IMPORTANT、CONTEXT、TODO(ai)、WARNING 和 @deprecated 标记。",
+    inputSchema: {
+      paths: z.array(z.string()).optional(),
+      markers: z.array(z.enum(INLINE_MARKERS)).optional(),
+      limit: z.number().int().positive().max(1000).optional(),
+    },
+  },
+  async ({ paths, markers, limit }) => result(await scanInlineMarkers(paths, markers, limit))
 );
 
 await server.connect(new StdioServerTransport());

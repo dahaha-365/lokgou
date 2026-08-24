@@ -7,11 +7,25 @@ description: 配置并使用 lokgou 的项目开发流程 MCP 服务进行技术
 
 `@lokgou/dev-mcp` 是服务于项目开发流程的 stdio MCP 服务，不是业务 API，也不会打包进 `apps/api` 部署产物。
 
-它提供三个工具：
+它提供五个工具：
 
 - `analyze_project`：返回 workspace、模块技术栈和开发规则。
 - `route_task`：用零 LLM 规则识别任务意图和工作阶段，推荐角色、模型层级，并列出相关模块与官方资料。
 - `delegate_task`：按阶段调用独立配置中的 OpenAI-compatible 模型，生成编排计划、受限编码任务说明或审查报告。
+- `search_context`：使用本地 ripgrep 检索代码和文档片段。
+- `scan_inline_markers`：扫描注释中的 `IMPORTANT:`、`CONTEXT:`、`TODO(ai):`、`WARNING:` 和 `@deprecated` 标记。
+
+### `scan_inline_markers`
+
+输入参数均为可选：`paths` 限定目录或文件，`markers` 限定标记类型（默认全部），`limit` 限制返回数量（默认 100）。结果按路径和行号排序，每项包含 `path`、`line`、`marker`、`text` 与 `raw`。扫描兼容 `//`、`#`、`/* */` 和 `*` 注释前缀，并忽略 `node_modules`、`.git`、`.ai/cache` 和 `src/generated`。
+
+```json
+{
+  "paths": ["apps/api/src"],
+  "markers": ["TODO(ai):", "WARNING:"],
+  "limit": 20
+}
+```
 
 ## 本地配置
 
