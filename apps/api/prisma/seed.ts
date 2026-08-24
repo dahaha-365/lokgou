@@ -29,6 +29,8 @@ const actions = ["read", "create", "update", "delete"];
 const subjects = [
   "User",
   "Department",
+  "DepartmentLeader",
+  "Position",
   "Role",
   "Permission",
   "Menu",
@@ -143,6 +145,23 @@ async function main() {
     },
   });
 
+  const platformPosition = await prisma.position.create({
+    data: {
+      code: await generateAutoCode("POSITION_CODE"),
+      name: "平台主管",
+      description: "负责平台工程团队",
+      enableState: 0,
+    },
+  });
+  await prisma.position.create({
+    data: {
+      code: await generateAutoCode("POSITION_CODE"),
+      name: "运营专员",
+      description: "负责运营工作",
+      enableState: 0,
+    },
+  });
+
   const passwordHash = await Bun.password.hash("demo123456");
   const admin = await prisma.user.create({
     data: {
@@ -204,6 +223,7 @@ async function main() {
       name: faker.person.fullName(),
       email: "staff@example.com",
       mobile: "+8613800000005",
+      positionId: platformPosition.id,
       enableState: 0,
     },
   });
@@ -267,7 +287,11 @@ async function main() {
       code: "SYSTEM_VIEWER",
       name: "系统查看员",
       description: "查看系统管理菜单和用户",
-      permissions: JSON.stringify(["MENU_READ", "USER_READ"]),
+      permissions: JSON.stringify(
+        subjects.flatMap((subject) =>
+          actions.map((action) => `${subject.toUpperCase()}_${action.toUpperCase()}`)
+        )
+      ),
       enableState: 0,
     },
   });
@@ -317,7 +341,7 @@ async function main() {
   await prisma.userDepartmentRole.createMany({
     data: [
       {
-        userId: demoAdmin.id,
+        userId: activeAdmin.id,
         departmentRoleId: engineeringManager.id,
         startedAt: fixedDates.recent,
       },
@@ -332,8 +356,13 @@ async function main() {
 
   await prisma.rolePermission.createMany({
     data: [
-      { roleId: systemViewer.id, permissionId: permission("MENU_READ").id, effect: "allow" },
-      { roleId: systemViewer.id, permissionId: permission("USER_READ").id, effect: "allow" },
+      ...subjects.flatMap((subject) =>
+        actions.map((action) => ({
+          roleId: systemViewer.id,
+          permissionId: permission(`${subject.toUpperCase()}_${action.toUpperCase()}`).id,
+          effect: "allow" as const,
+        }))
+      ),
       {
         roleId: organizationManager.id,
         permissionId: permission("DEPARTMENT_READ").id,
@@ -359,93 +388,116 @@ async function main() {
   await prisma.userRolePermission.createMany({
     data: [
       { userRoleId: demoUserRole.id, permissionId: permission("ROLE_READ").id, effect: "allow" },
-      { userRoleId: demoUserRole.id, permissionId: permission("ROLE_UPDATE").id, effect: "deny" },
+      { userRoleId: demoUserRole.id, permissionId: permission("ROLE_UPDATE").id, effect: "allow" },
     ],
   });
   await prisma.userPermission.createMany({
     data: [
       { userId: demoAdmin.id, permissionId: permission("PERMISSION_READ").id, effect: "allow" },
-      // Direct denial overrides the same role-derived menu permission.
-      { userId: demoAdmin.id, permissionId: permission("ROLE_READ").id, effect: "deny" },
+      // Direct denial overrides the same role-derived permission (activeAdmin).
+      { userId: activeAdmin.id, permissionId: permission("ROLE_READ").id, effect: "deny" },
       { userId: activeAdmin.id, permissionId: permission("AUTOCODE_READ").id, effect: "allow" },
     ],
   });
 
-  const menuRecords = [
-    {
-      code: "SYSTEM",
-      name: "系统管理",
-      group: "system",
-      type: "group" as const,
-      permissionCode: "MENU_READ",
-      sortOrder: 1,
-    },
-    {
-      code: "SYSTEM_USERS",
-      name: "用户管理",
-      group: "system",
-      type: "menu" as const,
-      permissionCode: "USER_READ",
-      path: "/users",
-      component: "users",
-      sortOrder: 1,
-    },
-    {
-      code: "SYSTEM_USER_CREATE",
-      name: "新建用户",
-      group: "system",
-      type: "button" as const,
-      permissionCode: "USER_CREATE",
-      sortOrder: 1,
-    },
-    {
-      code: "SYSTEM_ROLES",
-      name: "角色管理",
-      group: "system",
-      type: "menu" as const,
-      permissionCode: "ROLE_READ",
-      path: "/roles",
-      component: "roles",
-      sortOrder: 2,
-    },
+  const menuGroups = [
+    { code: "SYSTEM", name: "系统管理", group: "system", permissionCode: "AUTOCODE_READ" },
     {
       code: "ORGANIZATION",
       name: "组织管理",
       group: "organization",
-      type: "group" as const,
       permissionCode: "DEPARTMENT_READ",
-      sortOrder: 1,
-    },
-    {
-      code: "ORGANIZATION_DEPARTMENTS",
-      name: "部门管理",
-      group: "organization",
-      type: "menu" as const,
-      permissionCode: "DEPARTMENT_READ",
-      path: "/departments",
-      component: "departments",
-      sortOrder: 1,
-    },
-    {
-      code: "ORGANIZATION_PERMISSION_VIEW",
-      name: "查看权限",
-      group: "organization",
-      type: "button" as const,
-      permissionCode: "PERMISSION_READ",
-      sortOrder: 1,
     },
   ];
-  const systemMenu = await prisma.menu.create({ data: menuRecords[0]! });
-  const systemUsers = await prisma.menu.create({
-    data: { ...menuRecords[1]!, parentId: systemMenu.id },
+  const resources = [
+    ["users", "用户管理", "User"],
+    ["departments", "部门管理", "Department"],
+    ["department-leaders", "部门负责人", "DepartmentLeader"],
+    ["positions", "职位管理", "Position"],
+    ["roles", "角色管理", "Role"],
+    ["permissions", "权限管理", "Permission"],
+    ["menus", "菜单管理", "Menu"],
+    ["autocode", "自动编码", "AutoCode"],
+    ["dicts", "字典管理", "Dict"],
+    ["attachments", "附件管理", "Attachment"],
+    ["audit-logs", "审计日志", "AuditLog"],
+  ] as const;
+  const groupIds = new Map<string, number>();
+  for (const group of menuGroups) {
+    const record = await prisma.menu.create({ data: { ...group, type: "group", sortOrder: 1 } });
+    groupIds.set(group.group, record.id);
+  }
+  for (const [index, [code, name, subject]] of resources.entries()) {
+    const permissionPrefix = subject.toUpperCase();
+    const groupId = groupIds.get(
+      code === "departments" || code === "department-leaders" || code === "positions"
+        ? "organization"
+        : "system"
+    )!;
+    const menu = await prisma.menu.create({
+      data: {
+        code: `RESOURCE_${code.toUpperCase().replaceAll("-", "_")}`,
+        name,
+        group:
+          code === "departments" || code === "department-leaders" || code === "positions"
+            ? "organization"
+            : "system",
+        type: "menu",
+        parentId: groupId,
+        permissionCode: `${permissionPrefix}_READ`,
+        path: `/admin/${code}`,
+        component: code,
+        sortOrder: index + 1,
+      },
+    });
+    for (const [actionIndex, action] of actions.entries()) {
+      await prisma.menu.create({
+        data: {
+          code: `RESOURCE_${code.toUpperCase().replaceAll("-", "_")}_${action.toUpperCase()}`,
+          name: `${name}${action === "read" ? "查看" : action === "create" ? "新建" : action === "update" ? "编辑" : "删除"}`,
+          group:
+            code === "departments" || code === "department-leaders" || code === "positions"
+              ? "organization"
+              : "system",
+          type: "button",
+          parentId: menu.id,
+          permissionCode: `${permissionPrefix}_${action.toUpperCase()}`,
+          sortOrder: actionIndex + 1,
+        },
+      });
+    }
+  }
+
+  const dict = await prisma.dict.create({
+    data: { code: "USER_STATUS", name: "用户状态", description: "演示字典" },
   });
-  await prisma.menu.create({ data: { ...menuRecords[2]!, parentId: systemUsers.id } });
-  await prisma.menu.create({ data: { ...menuRecords[3]!, parentId: systemMenu.id } });
-  const organizationMenu = await prisma.menu.create({ data: menuRecords[4]! });
-  const organizationDepartments = await prisma.menu.create({
-    data: { ...menuRecords[5]!, parentId: organizationMenu.id },
+  await prisma.dictItem.createMany({
+    data: [
+      { dictId: dict.id, label: "启用", value: "0", sortOrder: 1 },
+      { dictId: dict.id, label: "停用", value: "1", sortOrder: 2 },
+    ],
   });
-  await prisma.menu.create({ data: { ...menuRecords[6]!, parentId: organizationDepartments.id } });
+  await prisma.attachment.create({
+    data: {
+      code: await generateAutoCode("ATTACHMENT"),
+      originalName: "seed.txt",
+      storageName: "seed.txt",
+      storagePath: "seed/seed.txt",
+      mimeType: "text/plain",
+      size: 4,
+      category: "demo",
+    },
+  });
+  await prisma.adminOperationLog.create({
+    data: {
+      actorId: demoAdmin.id,
+      method: "GET",
+      action: "read",
+      resource: "users",
+      targetResource: "users",
+      path: "/admin/users",
+    },
+  });
 
   await prisma.userSession.createMany({
     data: [
@@ -464,7 +516,7 @@ async function main() {
   });
 
   console.log(
-    "Seeded 6 users, 4 departments, 3 roles, 32 permissions, 7 menus, and all assignment models."
+    `Seeded 6 users, 4 departments, 2 positions, 3 roles, ${subjects.length * actions.length} permissions, ${2 + resources.length * 5} menus, 1 dict, 1 attachment, 1 audit log, and all assignment models.`
   );
 }
 
