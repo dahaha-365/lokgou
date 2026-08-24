@@ -181,9 +181,11 @@ seedTest(
     ).toMatch(/^USR/);
 
     const methods = ["get", "post", "put", "patch", "delete"] as const;
+    const separatelyTested = new Set(["/admin/auth/login", "/admin/auth/refresh"]);
     const parameterPath = (path: string) => path.replace(/\{[^}]+\}/g, "1");
     for (const [path, pathItem] of Object.entries(openapi.paths)) {
       if (path.startsWith("/openapi") || !pathItem || typeof pathItem !== "object") continue;
+      if (separatelyTested.has(path)) continue;
       for (const method of methods) {
         if (!(method in pathItem)) continue;
         const headers: Record<string, string> = { ...protectedHeaders };
