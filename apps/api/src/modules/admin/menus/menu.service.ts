@@ -1,5 +1,5 @@
-import {softDeleteExtension} from '@api/lib/prisma/extends/soft-delete'
-import {treeModelExtension} from '@api/lib/prisma/extends/tree-model'
+import { softDeleteExtension } from "@api/lib/prisma/extends/soft-delete";
+import { treeModelExtension } from "@api/lib/prisma/extends/tree-model";
 import type { MenuCreate, MenuEffectiveQuery, MenuQuery, MenuUpdate } from "@lokgou/schemas";
 import type { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "@api/lib/prisma";
